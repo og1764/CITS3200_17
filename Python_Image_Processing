@@ -13,7 +13,7 @@ initial = Image.open(filename)
 result = initial.resize((50, 50)).convert('L')
 pix_val = list(result.getdata())
 
-# These five lines are just reformatting and printing the array to a 2d array
+# These five lines are just reformatting and printing the array as a 2d array
 
 d_pix = []
 

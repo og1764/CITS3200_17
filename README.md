@@ -116,6 +116,6 @@ Before you put up a pull request.
 
 ### Folder structure
 
-To keep our code nice and clean I made have two other directories. The templates folder will contain all our html files. The static folder will contain static files, in other words all our css, images and javascript files. We should seperate different file types into different folders to keep things nice and clean. When we add our python scripts we should probably also make a folder for them aswell.
+To keep our code nice and clean we need to seperate different files into different folders. We should have a templates folder that will contain all our html files. A static folder will that will contain static files, in other words all our css, images and javascript files. When we add our python scripts we should probably also make a folder for them aswell.
 
 Feel free to update this doc if you think its missing stuff!

@@ -22,7 +22,7 @@ Many images of galaxies can be found [here](https://apod.nasa.gov/apod/astropix.
 
 [Running The Web App](#running-the-web-app)
 
-[Folder structure](#folderstructure)
+[Folder structure](#folder-structure)
 
 
 ### git setup
@@ -114,7 +114,7 @@ Just dont forget to change it back to
 
 Before you put up a pull request.
 
-#### Folder structure
+### Folder structure
 
 To keep our code nice and clean I made have two other directories. The templates folder will contain all our html files. The static folder will contain static files, in other words all our css, images and javascript files. We should seperate different file types into different folders to keep things nice and clean. When we add our python scripts we should probably also make a folder for them aswell.
 

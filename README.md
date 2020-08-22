@@ -17,9 +17,12 @@ Many images of galaxies can be found [here](https://apod.nasa.gov/apod/astropix.
 ### Sections
 
 [git setup](#gitsetup)
+
 [Branching](#branching)
+
 [Running The Web App](#running-the-web-app)
-[Folder Structure](#folderstructure)
+
+[Folder structure](#folderstructure)
 
 
 ### git setup
@@ -43,10 +46,9 @@ Your upstream should be GREYXXX/CITS3200_17.git and your origin should be your f
 
 It is important to always run the following commands before you start working on making any changes in your local environment:
 
-<pre><code>
-    git fetch upstream
-    git rebase upstream/master
-    git push origin master
+<pre><code>git fetch upstream
+git rebase upstream/master
+git push origin master
 </code></pre>
 
 The first command will fetch the most up to date version of the upstream repo.
@@ -88,8 +90,11 @@ Make sure you have python 3 installed. If you dont have it you can download it f
 
 Once you have made sure you have python 3 installed, go ahead and download flask using pip.
 If you are on a macbook the terminal command would be:
+
 ```pip3 install flask```
+
 I think on windows the command would be: 
+
 ```python3 -m pip3 install flask```
 
 I have just added a  python file called flaskapp.py which will contain the main function that will run our web app. If you go inside the file you'll see how simple it is to add pages. At the moment there are two pages, but to add more you would simply copy the the example function and write a new app route with the name of the url that you want and dont forget to give your function a different name.

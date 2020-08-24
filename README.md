@@ -119,3 +119,5 @@ Before you put up a pull request.
 To keep our code nice and clean we need to seperate different files into different folders. We should have a templates folder that will contain all our html files. A static folder will that will contain static files, in other words all our css, images and javascript files. When we add our python scripts we should probably also make a folder for them aswell.
 
 Feel free to update this doc if you think its missing stuff!
+
+Testing out if pr reviews are enabled ....

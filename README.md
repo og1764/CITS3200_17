@@ -120,4 +120,8 @@ To keep our code nice and clean we need to seperate different files into differe
 
 Feel free to update this doc if you think its missing stuff!
 
+<<<<<<< HEAD
 Testing out if pr reviews are enabled ....
+=======
+-test, remove later-
+>>>>>>> f3984f47098001877e8c17ee0e673ea79ebefcbd

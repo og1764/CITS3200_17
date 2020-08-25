@@ -1,6 +1,4 @@
-# CITS3200_17
-
-### Project: A new web-based galaxy classification tool using deep learning
+## Project: A new web-based galaxy classification tool using deep learning
 
 #### Project Goal
 The goal of this project is to develop a web-based platform, where users can input a galaxy image, then the AI (i.e., python code using Keras/tensorflow) in the platform will automatically classify the image into a morphological category (e.g., spiral or elliptical galaxy) and show the result online.
@@ -39,8 +37,8 @@ Once you have done that you want to make sure that the remote for your repo is s
 You should see an output that looks similar to this:
 <pre><code>origin  https://github.com/Abdi-Isse/CITS3200_17.git (fetch)
 origin  https://github.com/Abdi-Isse/CITS3200_17.git (push)
-upstream        https://github.com/GREYXXX/CITS3200_17.git (fetch)
-upstream        https://github.com/GREYXXX/CITS3200_17.git (push)</code></pre>
+upstream        https://github.com/CITS3200-Team17/CITS3200_17.git (fetch)
+upstream        https://github.com/CITS3200-Team17/CITS3200_17.git (push)</code></pre>
 
 Your upstream should be GREYXXX/CITS3200_17.git and your origin should be your forked repo.
 
@@ -85,6 +83,8 @@ If the git gatekeeper notices that there are any potential bugs or some minor ty
 
 The nice thing about pull requests is that if you need to make any changes, you just simply go back into your local environment and make the changes on the branch that you used to create the pull request. This way, once you are done squashing the bugs/typos and you push the same branch back up, the pull request will update with the new changes added. Then just get it reviewed again.
 
+Also, when you are done with making changes to your code, and you are ready to open a Pull request, please tag the designated git gatekeeper/reviewer in our discord channel to review and approve your code. Once approved feel free to merge!
+
 ### Running The web app
 Make sure you have python 3 installed. If you dont have it you can download it from [python.org](https://www.python.org/downloads/).
 
@@ -120,8 +120,3 @@ To keep our code nice and clean we need to seperate different files into differe
 
 Feel free to update this doc if you think its missing stuff!
 
-<<<<<<< HEAD
-Testing out if pr reviews are enabled ....
-=======
--test, remove later-
->>>>>>> f3984f47098001877e8c17ee0e673ea79ebefcbd

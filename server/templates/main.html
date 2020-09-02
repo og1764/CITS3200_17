@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="https://rawgit.com/enyo/dropzone/master/dist/dropzone.css">
   <link href="../static/style.css" rel="stylesheet" type="text/css" media="all">
   <script src="https://rawgit.com/enyo/dropzone/master/dist/dropzone.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="../js/copy-clipboard.js"></script>
 </head>
 <body>
   <div class="jumbotron text-center">
@@ -30,8 +32,12 @@
         </form>
         <p class="mt-5">Output:</p>
         <div class="card">
-          <div class="card-body" id="output"></div>
+          <div class="card-body" id="output">
+            <p id="p1">Example text</p>
+          </div>
         </div>
+        <br>
+        <button onclick="copyToClipboard('#p1')">Copy result to clipboard</button>
       </div>
     </div>
   </div>

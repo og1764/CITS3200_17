@@ -1,4 +1,47 @@
+:root {
+    --main-bg: #1e4c76;
+    --subsection-bg:#4C7498;
+    --border-colour: #10395F;
+    --text-colour: lightgray;
+}
+
+
 .dropzone {
-    border: 2px dashed #0087F7;
-    border-radius: 5px;
+    background-color: var(--subsection-bg);
+    border: 2px dashed var(--border-colour);
+    border-radius: 8px;
+    color: var(--text-colour);
+}
+
+.jumbotron {
+    background-image: url("../img/space.jpg");
+    background-size: cover;
+}
+
+h1, label, p {
+    color: var(--text-colour);
+}
+
+.form-control {
+    background-color: var(--subsection-bg);
+    border:2px dashed var(--border-colour);
+    color: var(--text-colour);
+}
+
+.card {
+    background-color: var(--subsection-bg);
+    border-radius: 8px;
+}
+
+body {
+    background-color: var(--main-bg);
+}
+
+button
+{
+    border-radius: 8px;
+    border-width: 2px;
+    border-color: var(--text-colour);
+    color: var(--text-colour);
+    background-color: var(--subsection-bg);
 }

@@ -5,7 +5,6 @@
     --text-colour: lightgray;
 }
 
-
 .dropzone {
     background-color: var(--subsection-bg);
     border: 2px dashed var(--border-colour);
@@ -30,6 +29,7 @@ h1, label, p {
 
 .card {
     background-color: var(--subsection-bg);
+    border: 2px dashed var(--border-colour);
     border-radius: 8px;
 }
 

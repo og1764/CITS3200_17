@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, json
 import keras
 from keras.datasets import mnist
 from keras.models import Sequential
@@ -30,6 +30,7 @@ def example():
     return render_template('example.html', title='Example')
 
 
+@app.route("/result", methods=['GET', 'POST'])
 def process_images():
     image_values = []
     return_values = []
@@ -39,10 +40,10 @@ def process_images():
         pix_val = list(result.getdata())
         norm_val = [i/255 for i in pix_val]
         image_values.append(norm_val)
-    os.remove(APP_ROOT+"\\uploads\\" + file)
+        os.remove(APP_ROOT+"\\uploads\\" + file)
     for i in image_values:
         return_values.append(CNN(i))
-    return return_values
+    return json.jsonify(return_values)
 
 
 def CNN(lines):
@@ -97,7 +98,7 @@ def CNN(lines):
     y_pred=loaded_model.predict(x_test)
     print(y_pred[:ntest])
 
-    return_values.append(str(ntest))
+    return_values.append(str(ntest)+" || ")
 
     for i in range(ntest):
       for j in range(num_classes):
@@ -107,7 +108,7 @@ def CNN(lines):
 
       print('i=', i, 'G-type=', y_type, 'P', prob)
     #  Original  type-1 is output
-      out_str = str(y_type) + ' ' + str(y_vec[0]) + ' '+ str(y_vec[1]) + ' ' + str(y_vec[2]) + "\n"
+      out_str = str(y_type) + ', ' + str(y_vec[0]) + ', '+ str(y_vec[1]) + ', ' + str(y_vec[2]) + "\n"
       return_values.append(out_str)
 
     return return_values
@@ -120,10 +121,11 @@ def upload():
         filename = file.filename
         destination = "/".join([target, filename])
         file.save(destination)
-    output = process_images()
-    print(output)
+    #output = process_images()
+    #print(output)
     return "Done"
 
-        
+
+  
 if __name__ == "__main__":
     app.run(debug=True, host='localhost', port=443)

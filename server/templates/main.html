@@ -10,6 +10,7 @@
   <script src="https://rawgit.com/enyo/dropzone/master/dist/dropzone.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script src="../static/js/copy-clipboard.js"></script>
+  <script src="../static/js/process-images.js"></script>
 </head>
 <body>
   <div class="jumbotron text-center">
@@ -30,6 +31,8 @@
         <form action="/upload" class="dropzone" id="my-dropzone">
           <div class="dz-message">Drag and drop an image here, or click to upload.</div>
         </form>
+		<br>
+		<button onclick="processFiles()">Classify!</button>
         <p class="mt-5">Output:</p>
         <div class="card">
           <div class="card-body" id="output">

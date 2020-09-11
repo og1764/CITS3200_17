@@ -108,7 +108,8 @@ def CNN(lines):
 
       print('i=', i, 'G-type=', y_type, 'P', prob)
     #  Original  type-1 is output
-      out_str = str(y_type) + ', ' + str(y_vec[0]) + ', '+ str(y_vec[1]) + ', ' + str(y_vec[2]) + "\n"
+      #out_str = str(y_type) + ', ' + str(y_vec[0]) + ', '+ str(y_vec[1]) + ', ' + str(y_vec[2]) + "\n"
+      out_str = '  i=' + str(i) + '  \nG-type=' + str(y_type) + '  P=' + str(prob)
       return_values.append(out_str)
 
     return return_values

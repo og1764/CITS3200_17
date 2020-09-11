@@ -10,11 +10,30 @@
     border: 2px dashed var(--border-colour);
     border-radius: 8px;
     color: var(--text-colour);
+    object-fit: cover;
+}
+
+.dz-preview.dz-image-preview {
+    background: transparent !important;
+}
+
+.dz-image {
+    border-radius: 8px !important;
+}
+
+.dz-remove {
+    color: var(--text-colour);
+    text-decoration: underline;
 }
 
 .jumbotron {
     background-image: url('./img/space.jpg');
     background-size: cover;
+}
+
+img {
+    min-width: 120px;
+    min-height: 120px;
 }
 
 h1, label, p {

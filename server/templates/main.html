@@ -28,7 +28,7 @@
             </select>
           </div>
         </form>
-        <form action="/upload" class="dropzone" id="dropzone">
+        <form action="/upload" class="dropzone" id="my-dropzone">
           <div class="dz-message">Drag and drop an image here, or click to upload.</div>
         </form>
 		<br>
@@ -44,5 +44,29 @@
       </div>
     </div>
   </div>
+
+<script type="text/javascript">
+  
+    Dropzone.autoDiscover = false;
+  
+    var myDropzone = new Dropzone(".dropzone", { 
+      addRemoveLinks: true,
+      removedfile: function(file) {
+        var fileName = file.name; 
+        
+        $.ajax({
+          type: 'POST',
+          url: '../static/upload.php',
+          data: {name: fileName,request: 'delete'},
+        });
+  
+        var _ref;
+        return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+       }
+    });
+      
+</script>
+
+
 </body>
 </html>

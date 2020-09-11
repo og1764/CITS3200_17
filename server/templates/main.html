@@ -9,7 +9,7 @@
   <link href="../static/style.css" rel="stylesheet" type="text/css" media="all">
   <script src="https://rawgit.com/enyo/dropzone/master/dist/dropzone.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-  <script src="../js/copy-clipboard.js"></script>
+  <script src="../static/js/copy-clipboard.js"></script>
 </head>
 <body>
   <div class="jumbotron text-center">
@@ -27,7 +27,7 @@
             </select>
           </div>
         </form>
-        <form action="/upload" class="dropzone" id="dropzone">
+        <form action="/upload" class="dropzone" id="my-dropzone">
           <div class="dz-message">Drag and drop an image here, or click to upload.</div>
         </form>
         <p class="mt-5">Output:</p>
@@ -41,5 +41,29 @@
       </div>
     </div>
   </div>
+
+<script type="text/javascript">
+  
+    Dropzone.autoDiscover = false;
+  
+    var myDropzone = new Dropzone(".dropzone", { 
+      addRemoveLinks: true,
+      removedfile: function(file) {
+        var fileName = file.name; 
+        
+        $.ajax({
+          type: 'POST',
+          url: '../static/upload.php',
+          data: {name: fileName,request: 'delete'},
+        });
+  
+        var _ref;
+        return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
+       }
+    });
+      
+</script>
+
+
 </body>
 </html>

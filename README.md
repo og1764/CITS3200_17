@@ -24,6 +24,8 @@ Many images of galaxies can be found [here](https://apod.nasa.gov/apod/astropix.
 
 [Folder structure](#folder-structure)
 
+[Other](#other)
+
 
 ### git setup
 Since we are using git to collaborate it is important that you get familiar with branching, rebasing, merging & pull requests in order to keep the workflow smooth.
@@ -129,6 +131,15 @@ Before you put up a pull request.
 ### Folder structure
 
 To keep our code nice and clean we need to seperate different files into different folders. We should have a templates folder that will contain all our html files. A static folder will that will contain static files, in other words all our css, images and javascript files. When we add our python scripts we should probably also make a folder for them aswell.
+
+
+### Other
+
+The username and password for the login page is:
+<ul>
+    <li>Username = admin</li>
+    <li>Password = password</li>
+</ul>
 
 Feel free to update this doc if you think its missing stuff!
 

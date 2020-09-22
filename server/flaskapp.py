@@ -22,7 +22,14 @@ import os.path
 import os
 from PIL import Image
 
+import tarfile
+import zipfile
+
+
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
+VALID_IMAGES = (".jpg", ".jpeg", ".png") # Other file formats work too 
+VALID_COMPRESSED = (".zip", ".tar.gz", ".tar") # TODO: Add 7z, Add rar,
+# tuple so it can be used with .endswith
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -67,6 +74,70 @@ def logout():
 def process_images():
     image_values = []
     return_values = []
+    
+    ### Here is Oliver's added code. Comment out if its broken
+    
+    image_list = [str(APP_ROOT) + "\\uploads\\" + filename for filename in os.listdir(APP_ROOT + "\\uploads") if filename.endswith(VALID_IMAGES)] # to make sure we don't expand multiple times
+    compressed_list = [str(APP_ROOT) + "\\uploads\\" + filename for filename in os.listdir(APP_ROOT + "\\uploads") if filename.endswith(VALID_COMPRESSED)]
+    folder_list = []
+    
+    # remove files that arent images or compressed folders
+    for file in os.listdir(APP_ROOT + "\\uploads"):
+        path = str(APP_ROOT) + "\\uploads\\" + file
+        if path not in image_list and path not in compressed_list:
+            os.remove(path) 
+    
+    # Loop over and extract compressed folders, then deletes it.
+    for file in compressed_list:
+        if file.endswith((".tar", ".tar.gz")):
+            tf = tarfile.open(file)
+            os.mkdir(file+".dir\\")
+            folder_list.append(file+".dir\\")
+            tf.extractall(file+".dir\\")
+        if file.endswith(".zip"):
+            with zipfile.ZipFile(file, 'r') as zip:
+                os.mkdir(file+".dir\\")
+                folder_list.append(file+".dir\\")
+                zip.extractall(file+".dir\\")
+        os.remove(file)
+
+    
+    # add images in the folders to be classified, and removes non-images
+    for folder in folder_list:
+        folder_img_list = [str(folder+filename) for filename in os.listdir(folder) if filename.endswith(VALID_IMAGES)]
+        image_list = image_list + folder_img_list
+        for file in os.listdir(folder):
+            path = str(folder + file)
+            if path not in folder_img_list:
+                os.remove(path) 
+
+    # classifies all image files
+    for file in image_list:
+        name = " " + file.split("\\")[-1] + "<br>"
+        initial = Image.open(file)
+        result = initial.resize((50, 50)).convert("L")
+        pix_val = list(result.getdata())
+        norm_val = [i/255 for i in pix_val]
+        image_values.append((norm_val, name))
+        os.remove(file)
+    for folder in folder_list:
+        os.rmdir(folder)
+    for i in image_values:
+        return_values.append((CNN(i[0]),i[1]))
+    x = json.jsonify(return_values)
+    print(x)
+    print(return_values)
+    ret = ""
+    for i in return_values:
+        for j in i:
+            ret = ret + "".join(j)
+    print(ret)
+    return json.jsonify(ret)
+    
+    
+    ### Here is the code that was working fine before
+    
+    """
     for file in os.listdir(APP_ROOT + "\\uploads"):
         initial = Image.open(APP_ROOT + "\\uploads\\" + file)
         result = initial.resize((50, 50)).convert("L")
@@ -77,6 +148,7 @@ def process_images():
     for i in image_values:
         return_values.append(CNN(i))
     return json.jsonify(return_values)
+    """
 
 
 def CNN(lines):
@@ -167,4 +239,4 @@ def upload():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='localhost', port=5001)
+    app.run(debug=True, host='localhost', port=443)

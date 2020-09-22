@@ -20,6 +20,8 @@ Many images of galaxies can be found [here](https://apod.nasa.gov/apod/astropix.
 
 [Running The Web App](#running-the-web-app)
 
+[Packages Required](#packages-required)
+
 [Folder structure](#folder-structure)
 
 
@@ -40,7 +42,7 @@ origin  https://github.com/Abdi-Isse/CITS3200_17.git (push)
 upstream        https://github.com/CITS3200-Team17/CITS3200_17.git (fetch)
 upstream        https://github.com/CITS3200-Team17/CITS3200_17.git (push)</code></pre>
 
-Your upstream should be GREYXXX/CITS3200_17.git and your origin should be your forked repo.
+Your upstream should be CITS3200-Team17/Team-17.git and your origin should be your forked repo.
 
 It is important to always run the following commands before you start working on making any changes in your local environment:
 
@@ -113,6 +115,16 @@ Just dont forget to change it back to
 ```app.run()```
 
 Before you put up a pull request.
+
+### Packages Required
+
+<p>In order to run the main program, flaskapp.py, you will need to install the following 3 packages before you can run it. (If you dont install these you will get an error).</p>
+<p>These packages are:</p>
+<ul>
+    <li>keras</li>
+    <li>tenserflow</li>
+    <li>flask_login</li>
+</ul>
 
 ### Folder structure
 

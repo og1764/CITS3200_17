@@ -1,13 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="/style.css" rel="stylesheet" type="text/css" media="all">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body>
- <p>Example page
-  
+  <div class="jumbotron">
+    <div class="container">
+      <h1>Welcome to website</h1>
+    </div>
+  </div>
+  <a class="bt" href="{{ url_for('login') }}"><button type="button" class="btn btn-warning" style="margin:0 auto;display:block">
+  <span style="color:cornflowerblue">login now<span></button></a>  
 <script>
 </script>
 </body>

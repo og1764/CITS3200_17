@@ -12,6 +12,7 @@
   <script src="../static/js/copy-clipboard.js"></script>
   <script src="../static/js/process-images.js"></script>
 </head>
+
 <body>
   <div class="jumbotron text-center">
     <h1>Galaxy Classification Tool</h1>
@@ -43,6 +44,10 @@
         <button onclick="copyToClipboard('#p1')">Copy result to clipboard</button>
       </div>
     </div>
+  </div>
+  <div>
+    <a class="bt" href="{{ url_for('logout') }}"><button type="button" class="btn btn-warning" style="margin:0 auto;display:block">
+      <span style="color:cornflowerblue">logout<span></button></a>  
   </div>
 
 <script type="text/javascript">

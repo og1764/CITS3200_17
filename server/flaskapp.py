@@ -1,4 +1,14 @@
+from config import Config
+from Model import User
+from Form import LoginForm
 from flask import Flask, render_template, request, json
+from flask import render_template, flash, redirect, url_for, request, send_from_directory
+from flask_login import logout_user, login_user, current_user, login_required
+from werkzeug.urls import url_parse
+from flask_wtf import FlaskForm
+from wtforms import SelectField, SubmitField
+from wtforms.validators import ValidationError, DataRequired
+
 import keras
 from keras.datasets import mnist
 from keras.models import Sequential
@@ -16,18 +26,37 @@ from PIL import Image
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 app = Flask(__name__)
+app.config.from_object(Config)
+app.secret_key = 'SECRET KEY'
+@app.route('/')
+@app.route('/home')
+def example():
+    return render_template('example.html', title='Example')
 
+@app.route("/login", methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        #user = User(username=form.username.data, password = form.password.data)
+        if form.username.data != 'admin' or form.password.data != 'password':
+            flash('Invalid username or password')
+            return redirect(url_for('login'))
+        #login_user(user, remember=form.remember_me.data)
+        return redirect(url_for('main'))
+    return render_template('log.html', form=form)
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/main", methods=['GET', 'POST'])
 def main():
     return render_template('main.html', title='Main')
+
+@app.route('/logout', methods=['GET', 'POST'])
+def logout():
+    #logout_user()
+    return redirect(url_for('login'))
 
 
 # Below is an example of how to add other pages
 # To go to this webpage you would need to add "/Examplepage" to the end of the main page url
-@app.route("/Examplepage", methods=['GET', 'POST'])
-def example():
-    return render_template('example.html', title='Example')
 
 
 @app.route("/result", methods=['GET', 'POST'])
@@ -44,7 +73,6 @@ def process_images():
     for i in image_values:
         return_values.append(CNN(i))
     return json.jsonify(return_values)
-
 
 def CNN(lines):
     """ Takes an array of values """
@@ -114,7 +142,6 @@ def CNN(lines):
 
     return return_values
 
-
 @app.route("/upload", methods=['POST'])
 def upload():
     target = os.path.join(APP_ROOT, 'uploads/')
@@ -125,8 +152,6 @@ def upload():
     #output = process_images()
     #print(output)
     return "Done"
-
-
   
 if __name__ == "__main__":
-    app.run(debug=True, host='localhost', port=443)
+    app.run(debug=True, host='localhost', port=5001)

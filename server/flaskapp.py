@@ -1,5 +1,4 @@
 from config import Config
-from Model import User
 from Form import LoginForm
 from flask import Flask, render_template, request, json
 from flask import render_template, flash, redirect, url_for, request, send_from_directory

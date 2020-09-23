@@ -35,6 +35,10 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = 'SECRET KEY'
 
+if os.name == "nt":
+    sh = "\\"
+else:
+    sh = "/"
 
 @app.route('/')
 @app.route('/home')
@@ -77,13 +81,13 @@ def process_images():
     
     ### Here is Oliver's added code. Comment out if its broken
     
-    image_list = [str(APP_ROOT) + "\\uploads\\" + filename for filename in os.listdir(APP_ROOT + "\\uploads") if filename.endswith(VALID_IMAGES)] # to make sure we don't expand multiple times
-    compressed_list = [str(APP_ROOT) + "\\uploads\\" + filename for filename in os.listdir(APP_ROOT + "\\uploads") if filename.endswith(VALID_COMPRESSED)]
+    image_list = [str(APP_ROOT) + sh + "uploads" + sh + filename for filename in os.listdir(APP_ROOT + sh + "uploads") if filename.endswith(VALID_IMAGES)] # to make sure we don't expand multiple times
+    compressed_list = [str(APP_ROOT) + sh +"uploads" + sh + filename for filename in os.listdir(APP_ROOT + sh + "uploads") if filename.endswith(VALID_COMPRESSED)]
     folder_list = []
     
     # remove files that arent images or compressed folders
-    for file in os.listdir(APP_ROOT + "\\uploads"):
-        path = str(APP_ROOT) + "\\uploads\\" + file
+    for file in os.listdir(APP_ROOT + sh + "uploads"):
+        path = str(APP_ROOT) + sh + "uploads" + sh + file
         if path not in image_list and path not in compressed_list:
             os.remove(path) 
     
@@ -91,14 +95,14 @@ def process_images():
     for file in compressed_list:
         if file.endswith((".tar", ".tar.gz")):
             tf = tarfile.open(file)
-            os.mkdir(file+".dir\\")
-            folder_list.append(file+".dir\\")
-            tf.extractall(file+".dir\\")
+            os.mkdir(file+".dir" + sh)
+            folder_list.append(file+".dir" + sh)
+            tf.extractall(file+".dir" + sh)
         if file.endswith(".zip"):
             with zipfile.ZipFile(file, 'r') as zip:
-                os.mkdir(file+".dir\\")
-                folder_list.append(file+".dir\\")
-                zip.extractall(file+".dir\\")
+                os.mkdir(file+".dir" + sh)
+                folder_list.append(file+".dir/")
+                zip.extractall(file+".dir/")
         os.remove(file)
 
     
@@ -113,7 +117,7 @@ def process_images():
 
     # classifies all image files
     for file in image_list:
-        name = " " + file.split("\\")[-1] + "<br>"
+        name = " " + file.split("/")[-1] + "<br>"
         initial = Image.open(file)
         result = initial.resize((50, 50)).convert("L")
         pix_val = list(result.getdata())
@@ -190,13 +194,13 @@ def CNN(lines):
     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
 
     # load json and create model
-    json_file = open(APP_ROOT + '\\ct3200.dir\\model.json', 'r')
+    json_file = open(APP_ROOT + sh + 'ct3200.dir' + sh + 'model.json', 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     loaded_model = model_from_json(loaded_model_json)
 
     # load weights into new model
-    loaded_model.load_weights(APP_ROOT + "\\ct3200.dir\\model.h5")
+    loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
     print("Loaded model from disk")
 
     y_vec = np.zeros(num_classes)

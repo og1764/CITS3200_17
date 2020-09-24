@@ -33,7 +33,7 @@
           <div class="dz-message">Drag and drop an image here, or click to upload.</div>
         </form>
 		<br>
-		<button onclick="processFiles()">Classify!</button>
+		<button id="classify" onclick="processFiles()">Classify!</button>
         <p class="mt-5">Output:</p>
         <div class="card">
           <div class="card-body" id="output">
@@ -47,13 +47,13 @@
   </div>
   <div>
     <a class="bt" href="{{ url_for('logout') }}"><button type="button" class="btn btn-warning" style="margin:0 auto;display:block">
-      <span style="color:cornflowerblue">logout<span></button></a>  
+      <span>Logout<span></button></a>  
   </div>
 
 <script type="text/javascript">
   
     Dropzone.autoDiscover = false;
-  
+
     var myDropzone = new Dropzone(".dropzone", { 
       addRemoveLinks: true,
       removedfile: function(file) {
@@ -69,6 +69,13 @@
         return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
        }
     });
+
+    function removeFunction() {
+        Dropzone.forElement(".dropzone").removeAllFiles(true);
+    };
+
+    var el = document.getElementById("classify");
+    el.addEventListener("click", removeFunction);
       
 </script>
 

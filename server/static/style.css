@@ -31,13 +31,28 @@
     background-size: cover;
 }
 
+.login .formInLogin .btn {
+    background: var(--subsection-bg) !important;
+    border: 2px dashed var(--border-colour) !important;
+    border-radius: 8px;
+    color: var(--text-colour);
+}
+
+.login .m a {
+    color: var(--text-colour);
+}
+
+.login .m {
+    line-height: 36px !important;    
+}
+
 img {
     min-width: 120px;
     min-height: 120px;
 }
 
-h1, label, p {
-    color: var(--text-colour);
+h1, body, label, p, span, ::placeholder {
+    color: var(--text-colour) !important;
 }
 
 .form-control {
@@ -53,14 +68,18 @@ h1, label, p {
 }
 
 body {
-    background-color: var(--main-bg);
+    background-color: var(--main-bg) !important;
 }
 
-button
-{
+button, input, .btn-warning {
     border-radius: 8px;
     border-width: 2px;
-    border-color: var(--text-colour);
-    color: var(--text-colour);
-    background-color: var(--subsection-bg);
+    border-color: var(--text-colour) !important;
+    color: var(--text-colour) !important;
+    background-color: var(--subsection-bg) !important;
+}
+
+.btn-warning-hover {
+    border-color: gray !important;
+    background-color: var(--main-bg) !important;
 }

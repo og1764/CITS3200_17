@@ -233,6 +233,9 @@ def CNN(lines):
 @app.route("/upload", methods=['POST'])
 def upload():
     target = os.path.join(APP_ROOT, 'uploads/')
+    if not os.path.exists(target):
+        os.mkdir(target)
+        
     for file in request.files.getlist("file"):
         filename = file.filename
         destination = "/".join([target, filename])

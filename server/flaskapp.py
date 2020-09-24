@@ -181,6 +181,8 @@ def process_images():
     # removes compressed files after they've been extracted.
     # this isnt in the above loop because I was getting weird permission errors where the zip was still in use
     # Even after moving it all the way down here it still thinks its in use >:(
+    # 
+    # This was the best solution I could come up with. We're going to get a lot of errors on this first try-catch but if it works...
     try:
         tf.close()
     except:
@@ -190,16 +192,10 @@ def process_images():
             os.remove(file)
         except:
             print(str(sys.exc_info()[1]) + " @ Line "+ str(sys.exc_info()[2].tb_lineno))
-    # Removing the empty zipped folders.
-    #for folder in folder_list:
-    #    try:
-    #        os.rmdir(folder)
-    #    except Exception as e:
-    #        print(e.message + " " + e.args)
     
+    # Removing the empty zipped folders.
     for folder in folder_list:
         shutil.rmtree(folder)
-    
     
     print(datetime.datetime.now())
     t4 = datetime.datetime.now()
@@ -214,7 +210,9 @@ def process_images():
             ret = ret + "".join(j).replace(rep,"")
     if ret == "":
         ret = "Example text"
-    else:
+    else: # If something was actually classified
+        # This is all for the returnFile() function. We need to figure out how to use identifiers though
+        # Because it's a bit of a jank-fest atm, and it really only supports one user.
         f = open(APP_ROOT + sh + "toSend" + sh +"ThisFileWillAlwaysHaveThisNameAndThatsBad.txt", "w")
         toSend = ret.replace("<br>", "\n")
         f.write(toSend)

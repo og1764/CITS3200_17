@@ -1,7 +1,7 @@
 from config import Config
 from Form import LoginForm
 from flask import Flask, render_template, request, json
-from flask import render_template, flash, redirect, url_for, request, send_from_directory
+from flask import render_template, flash, redirect, url_for, request, send_from_directory, send_file, Response
 from flask_login import logout_user, login_user, current_user, login_required
 from werkzeug.urls import url_parse
 from flask_wtf import FlaskForm
@@ -25,6 +25,7 @@ from os import listdir
 from os.path import isfile, join
 import glob
 from PIL import Image, UnidentifiedImageError
+import sys
 
 import tarfile
 import zipfile
@@ -82,6 +83,18 @@ def login():
 def main():
     return render_template('main.html', title='Main')
 
+# This is more than a little jank. We're going to have to figure out how to use identifiers here as well
+@app.route('/getResults')
+def returnFile():
+    print("We're here!")
+    with open(APP_ROOT + sh + "toSend" + sh +"ThisFileWillAlwaysHaveThisNameAndThatsBad.txt") as f:
+        txt_content = f.read()
+    toReturn = Response(
+                txt_content,
+                mimetype="text/txt",
+                headers={"Content-disposition":
+                 "attachment; filename=Results.txt"})
+    return toReturn
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
@@ -151,8 +164,8 @@ def process_images():
             extension = name.split(".")[-1]
             error_message = 'Could not classify "<b>{}</b>" as <b>.{}</b> is not a valid file extension.<br>'.format(name.lstrip(), extension.rstrip())
             image_values.append((error_message, ""))
-        except Exception as e:
-            print(e.message + " " + e.args)
+        except:
+            print(str(sys.exc_info()[1]) + " @ Line "+ str(sys.exc_info()[2].tb_lineno))
         os.remove(file)
     
     
@@ -170,13 +183,13 @@ def process_images():
     # Even after moving it all the way down here it still thinks its in use >:(
     try:
         tf.close()
-    except Exception as e:
-            print(e.message + " " + e.args)
+    except:
+        print(str(sys.exc_info()[1]) + " @ Line "+ str(sys.exc_info()[2].tb_lineno))
     for file in compressed_list:
         try:
             os.remove(file)
-        except Exception as e:
-            print(e.message + " " + e.args)
+        except:
+            print(str(sys.exc_info()[1]) + " @ Line "+ str(sys.exc_info()[2].tb_lineno))
     # Removing the empty zipped folders.
     #for folder in folder_list:
     #    try:
@@ -201,7 +214,11 @@ def process_images():
             ret = ret + "".join(j).replace(rep,"")
     if ret == "":
         ret = "Example text"
-       
+    else:
+        f = open(APP_ROOT + sh + "toSend" + sh +"ThisFileWillAlwaysHaveThisNameAndThatsBad.txt", "w")
+        toSend = ret.replace("<br>", "\n")
+        f.write(toSend)
+        f.close()
     return json.jsonify(ret)
     
 

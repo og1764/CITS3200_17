@@ -126,6 +126,8 @@ Before you put up a pull request.
     <li>keras</li>
     <li>tenserflow</li>
     <li>flask_login</li>
+    <li>tarfile</li>
+    <li>zipfile</li>
 </ul>
 
 ### Folder structure

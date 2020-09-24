@@ -168,6 +168,10 @@ def process_images():
     # removes compressed files after they've been extracted.
     # this isnt in the above loop because I was getting weird permission errors where the zip was still in use
     # Even after moving it all the way down here it still thinks its in use >:(
+    try:
+        tf.close()
+    except Exception as e:
+            print(e.message + " " + e.args)
     for file in compressed_list:
         try:
             os.remove(file)

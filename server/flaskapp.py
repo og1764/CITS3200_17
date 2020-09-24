@@ -20,8 +20,10 @@ import keras.callbacks
 import numpy as np
 import os.path
 import os
+import shutil
 from os import listdir
 from os.path import isfile, join
+import glob
 from PIL import Image, UnidentifiedImageError
 
 import tarfile
@@ -30,7 +32,6 @@ import datetime
 
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
-VALID_IMAGES = (".jpg", ".jpeg", ".png") # Other file formats work too 
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar") # TODO: Add 7z, Add rar,
 # tuple so it can be used with .endswith
 
@@ -60,7 +61,7 @@ def files_in_folder(dirName):
         path = os.path.join(dirName, entry)
         if os.path.isdir(path):
             result = result + files_in_folder(path)
-        else:
+        elif not path.endswith(VALID_COMPRESSED):
             result.append(path)
     return result
 
@@ -99,12 +100,9 @@ def process_images():
     t1 = datetime.datetime.now()
     image_values = []
     return_values = []
-    uploads_path = str(APP_ROOT) + sh + "uploads"
-    
-    ### Here is Oliver's added code. Comment out if its broken
-    
-    compressed_list = [uploads_path + sh + filename for filename in os.listdir(uploads_path) if filename.endswith(VALID_COMPRESSED)]
     folder_list = []
+    uploads_path = str(APP_ROOT) + sh + "uploads"    
+    compressed_list = [uploads_path + sh + filename for filename in os.listdir(uploads_path) if filename.endswith(VALID_COMPRESSED)]
     print(compressed_list)
     
     # Loop over and extract compressed folders
@@ -114,39 +112,30 @@ def process_images():
             os.mkdir(file + ".dir" + sh)
             folder_list.append(file + ".dir" + sh)
             tf.extractall(file+".dir" + sh)
+            tf.close()
         if file.endswith(".zip"):
             with zipfile.ZipFile(file, 'r') as zip:
                 os.mkdir(file+".dir" + sh)
                 folder_list.append(file+".dir"+sh)
                 zip.extractall(file+".dir"+sh)
-        #os.remove(file)
-    #for file in compressed_list:
-    #    os.remove(file)
-    # Files not removed!!!
-    
-    print("compression done")
+        
+    print("extracting done")
     print(datetime.datetime.now())
     t2 = datetime.datetime.now()
-    # removes compressed files after they've been extracted.
-    # this isnt in the above loop because I was getting weird permission errors where the zip was still in use
-    for file in compressed_list:
-        os.remove(file)
     
-
     # Check out my onlyfiles ;)
     onlyfiles = files_in_folder(uploads_path)
-    print(onlyfiles)
+    #print(onlyfiles)
     
-    
+    # Moved this out of the CNN function because its expensive, so its better to only call once.
     json_file = open(APP_ROOT + sh + 'ct3200.dir' + sh + 'model.json', 'r')
     loaded_model_json = json_file.read()
     json_file.close()
     loaded_model = model_from_json(loaded_model_json)
-
     # load weights into new model
     loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
     
-    # classifies all image files
+    # classifies all files, gives an error if not a valid image type.
     for file in onlyfiles:
         name = " " + file.split("/")[-1]
         error_counter = 0
@@ -162,28 +151,45 @@ def process_images():
             extension = name.split(".")[-1]
             error_message = 'Could not classify "<b>{}</b>" as <b>.{}</b> is not a valid file extension.<br>'.format(name.lstrip(), extension.rstrip())
             image_values.append((error_message, ""))
-        except e:
-            print(e)
+        except Exception as e:
+            print(e.message + " " + e.args)
         os.remove(file)
-    for folder in folder_list:
-        os.rmdir(folder)
-    print(folder_list)
-    # wtf is it deleting it somewhere else?????
+    
+    
+    # counter is not really useful, but it's nice to see the console doing things.
     counter = 0
     for i in image_values:
-        counter = counter + 1 # counter is not really useful, but it's nice to see the console doing things.
+        counter = counter + 1 
         if i[1] != "":
             return_values.append((CNN(i[0], loaded_model, counter),i[1]))
         else:
             return_values.append((error_message, ""))
-    x = json.jsonify(return_values)
-    print(x)
-    print(return_values)
+
+    # removes compressed files after they've been extracted.
+    # this isnt in the above loop because I was getting weird permission errors where the zip was still in use
+    # Even after moving it all the way down here it still thinks its in use >:(
+    for file in compressed_list:
+        try:
+            os.remove(file)
+        except Exception as e:
+            print(e.message + " " + e.args)
+    # Removing the empty zipped folders.
+    #for folder in folder_list:
+    #    try:
+    #        os.rmdir(folder)
+    #    except Exception as e:
+    #        print(e.message + " " + e.args)
+    
+    for folder in folder_list:
+        shutil.rmtree(folder)
+    
+    
     print(datetime.datetime.now())
     t4 = datetime.datetime.now()
     tot_time = t4 - t1
     print("\nTime taken for this request: " + str(tot_time)+"\n")
 
+    # Just a bit of formatting
     ret = ""
     rep = APP_ROOT + sh + "uploads" + sh
     for i in return_values:
@@ -191,6 +197,7 @@ def process_images():
             ret = ret + "".join(j).replace(rep,"")
     if ret == "":
         ret = "Example text"
+       
     return json.jsonify(ret)
     
 

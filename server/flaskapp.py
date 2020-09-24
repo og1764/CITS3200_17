@@ -1,8 +1,9 @@
 from config import Config
 from Form import LoginForm
+from Model import query_user, User
 from flask import Flask, render_template, request, json
 from flask import render_template, flash, redirect, url_for, request, send_from_directory, send_file, Response
-from flask_login import logout_user, login_user, current_user, login_required
+from flask_login import logout_user, login_user, current_user, login_required, LoginManager
 from werkzeug.urls import url_parse
 from flask_wtf import FlaskForm
 from wtforms import SelectField, SubmitField
@@ -39,6 +40,8 @@ VALID_COMPRESSED = (".zip", ".tar.gz", ".tar") # TODO: Add 7z, Add rar,
 app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = 'SECRET KEY'
+login = LoginManager(app)
+login.login_view = 'login'
 
 #if os.name == "nt":
 #    sh = "\\"
@@ -66,20 +69,31 @@ def files_in_folder(dirName):
             result.append(path)
     return result
 
+@login.user_loader
+def load_user(user_id):
+    if query_user(user_id) is not None:
+        curr_user = User()
+        curr_user.id = user_id
+        return curr_user
+
+
 @app.route("/login", methods=['GET', 'POST'])
 def login():
     form = LoginForm()
     if form.validate_on_submit():
-        #user = User(username=form.username.data, password = form.password.data)
-        if form.username.data != 'admin' or form.password.data != 'password':
-            flash('Invalid username or password')
-            return redirect(url_for('login'))
-        #login_user(user, remember=form.remember_me.data)
-        return redirect(url_for('main'))
+        user = query_user(form.username.data)
+        if user is not None and form.password.data == user['password']:
+            curr_user = User()
+            curr_user.id = form.username.data
+            login_user(curr_user, remember=form.remember_me.data)
+            return redirect(url_for('main'))
+        flash('Invalid username or password')
+        return redirect(url_for('login'))
     return render_template('log.html', form=form)
 
 
 @app.route("/main", methods=['GET', 'POST'])
+@login_required
 def main():
     return render_template('main.html', title='Main')
 
@@ -98,7 +112,7 @@ def returnFile():
 
 @app.route('/logout', methods=['GET', 'POST'])
 def logout():
-    # logout_user()
+    logout_user()
     return redirect(url_for('login'))
 
 
@@ -314,4 +328,4 @@ def upload():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host='localhost', port=443)
+    app.run(debug=True, host='localhost')

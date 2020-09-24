@@ -20,7 +20,9 @@ import keras.callbacks
 import numpy as np
 import os.path
 import os
-from PIL import Image
+from os import listdir
+from os.path import isfile, join
+from PIL import Image, UnidentifiedImageError
 
 import tarfile
 import zipfile
@@ -47,7 +49,20 @@ sh = os.sep
 @app.route('/home')
 def example():
     return render_template('example.html', title='Example')
-
+    
+# Helper function to iterate over directories
+def files_in_folder(dirName):
+    file_list = os.listdir(dirName)
+    result = []
+    # Iterate over all the entries
+    for entry in file_list:
+        # Create full path
+        path = os.path.join(dirName, entry)
+        if os.path.isdir(path):
+            result = result + files_in_folder(path)
+        else:
+            result.append(path)
+    return result
 
 @app.route("/login", methods=['GET', 'POST'])
 def login():
@@ -84,33 +99,26 @@ def process_images():
     t1 = datetime.datetime.now()
     image_values = []
     return_values = []
+    uploads_path = str(APP_ROOT) + sh + "uploads"
     
     ### Here is Oliver's added code. Comment out if its broken
     
-    image_list = [str(APP_ROOT) + sh + "uploads" + sh + filename for filename in os.listdir(APP_ROOT + sh + "uploads") if filename.endswith(VALID_IMAGES)] # to make sure we don't expand multiple times
-    compressed_list = [str(APP_ROOT) + sh +"uploads" + sh + filename for filename in os.listdir(APP_ROOT + sh + "uploads") if filename.endswith(VALID_COMPRESSED)]
+    compressed_list = [uploads_path + sh + filename for filename in os.listdir(uploads_path) if filename.endswith(VALID_COMPRESSED)]
     folder_list = []
+    print(compressed_list)
     
-    # Commented out everything to delete files.
-    # remove files that arent images or compressed folders
-    for file in os.listdir(APP_ROOT + sh + "uploads"):
-        path = str(APP_ROOT) + sh + "uploads" + sh + file
-        if path not in image_list and path not in compressed_list:
-            #os.remove(path) 
-            pass
-    
-    # Loop over and extract compressed folders, then deletes it.
+    # Loop over and extract compressed folders
     for file in compressed_list:
         if file.endswith((".tar", ".tar.gz")):
             tf = tarfile.open(file)
-            os.mkdir(file+".dir" + sh)
-            folder_list.append(file+".dir" + sh)
+            os.mkdir(file + ".dir" + sh)
+            folder_list.append(file + ".dir" + sh)
             tf.extractall(file+".dir" + sh)
         if file.endswith(".zip"):
             with zipfile.ZipFile(file, 'r') as zip:
                 os.mkdir(file+".dir" + sh)
-                folder_list.append(file+".dir/")
-                zip.extractall(file+".dir/")
+                folder_list.append(file+".dir"+sh)
+                zip.extractall(file+".dir"+sh)
         #os.remove(file)
     #for file in compressed_list:
     #    os.remove(file)
@@ -119,29 +127,16 @@ def process_images():
     print("compression done")
     print(datetime.datetime.now())
     t2 = datetime.datetime.now()
+    # removes compressed files after they've been extracted.
+    # this isnt in the above loop because I was getting weird permission errors where the zip was still in use
+    for file in compressed_list:
+        os.remove(file)
     
-    # add images in the folders to be classified, and removes non-images
-    folder_img_list = []
-    for folder in folder_list:
-        for subdir, dirs, files in os.walk(folder):
-            for file in files:
-                filepath = subdir + sh + file
-                if filepath.endswith(VALID_IMAGES):
-                    folder_img_list.append(filepath)
-                elif not os.path.isdir(filepath): # to make sure we don't delete a folder we want to walk in to
-                    #os.remove(filepath)  
-                    pass
+
+    # Check out my onlyfiles ;)
+    onlyfiles = files_in_folder(uploads_path)
+    print(onlyfiles)
     
-        #folder_img_list = [str(folder+filename) for filename in os.listdir(folder) if filename.endswith(VALID_IMAGES)]
-        #image_list = image_list + folder_img_list
-        #for file in os.listdir(folder):
-        #    path = str(folder + file)
-        #    if path not in folder_img_list:
-        #       os.remove(path) 
-    print("Finished file thingo")
-    print(datetime.datetime.now())
-    t3 = datetime.datetime.now()
-    image_list = image_list + folder_img_list
     
     json_file = open(APP_ROOT + sh + 'ct3200.dir' + sh + 'model.json', 'r')
     loaded_model_json = json_file.read()
@@ -152,53 +147,52 @@ def process_images():
     loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
     
     # classifies all image files
-    for file in image_list:
-        name = " " + file.split("/")[-1] + "<br>"
-        initial = Image.open(file)
-        result = initial.resize((50, 50)).convert("L")
-        pix_val = list(result.getdata())
-        norm_val = [i/255 for i in pix_val]
-        image_values.append((norm_val, name))
-        initial.close()
-        #os.remove(file)
-    #for folder in folder_list:
-    #    os.rmdir(folder)
-    # Folder not deleted!!
+    for file in onlyfiles:
+        name = " " + file.split("/")[-1]
+        error_counter = 0
+        try:
+            initial = Image.open(file)
+            result = initial.resize((50, 50)).convert("L")
+            pix_val = list(result.getdata())
+            norm_val = [i/255 for i in pix_val]
+            image_values.append((norm_val, name+ "<br>"))
+            initial.close()
+        except UnidentifiedImageError:
+            print("Unidentified Image Error")
+            extension = name.split(".")[-1]
+            error_message = 'Could not classify "<b>{}</b>" as <b>.{}</b> is not a valid file extension.<br>'.format(name.lstrip(), extension.rstrip())
+            image_values.append((error_message, ""))
+        except e:
+            print(e)
+        os.remove(file)
+    for folder in folder_list:
+        os.rmdir(folder)
+    print(folder_list)
+    # wtf is it deleting it somewhere else?????
     counter = 0
     for i in image_values:
-        counter = counter + 1
-        return_values.append((CNN(i[0], loaded_model, counter),i[1]))
+        counter = counter + 1 # counter is not really useful, but it's nice to see the console doing things.
+        if i[1] != "":
+            return_values.append((CNN(i[0], loaded_model, counter),i[1]))
+        else:
+            return_values.append((error_message, ""))
     x = json.jsonify(return_values)
     print(x)
     print(return_values)
     print(datetime.datetime.now())
     t4 = datetime.datetime.now()
     tot_time = t4 - t1
-    print(str(tot_time))
+    print("\nTime taken for this request: " + str(tot_time)+"\n")
 
     ret = ""
     rep = APP_ROOT + sh + "uploads" + sh
     for i in return_values:
         for j in i:
             ret = ret + "".join(j).replace(rep,"")
-    #print(ret)
+    if ret == "":
+        ret = "Example text"
     return json.jsonify(ret)
     
-    
-    ### Here is the code that was working fine before
-    
-    """
-    for file in os.listdir(APP_ROOT + "\\uploads"):
-        initial = Image.open(APP_ROOT + "\\uploads\\" + file)
-        result = initial.resize((50, 50)).convert("L")
-        pix_val = list(result.getdata())
-        norm_val = [i/255 for i in pix_val]
-        image_values.append(norm_val)
-        os.remove(APP_ROOT+"\\uploads\\" + file)
-    for i in image_values:
-        return_values.append(CNN(i))
-    return json.jsonify(return_values)
-    """
 
 
 def CNN(lines, loaded_model, number):
@@ -270,11 +264,11 @@ def CNN(lines, loaded_model, number):
         # return_values.append(out_str)
         formatted_prob = prob * 100
         if y_type == 0:
-            return_values.append("E - {0:.2f}".format(prob))
+            return_values.append("E - {0:.2f}% -".format(formatted_prob))
         if y_type == 1:
-            return_values.append("S0 - {0:.2f}".format(prob))
+            return_values.append("S0 - {0:.2f}% -".format(formatted_prob))
         if y_type == 2:
-            return_values.append("Sp - {0:.2f}".format(prob))
+            return_values.append("Sp - {0:.2f}% -".format(formatted_prob))
     return return_values
 
 

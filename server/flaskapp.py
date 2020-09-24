@@ -24,6 +24,7 @@ from PIL import Image
 
 import tarfile
 import zipfile
+import datetime
 
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -35,10 +36,12 @@ app = Flask(__name__)
 app.config.from_object(Config)
 app.secret_key = 'SECRET KEY'
 
-if os.name == "nt":
-    sh = "\\"
-else:
-    sh = "/"
+#if os.name == "nt":
+#    sh = "\\"
+#else:
+#    sh = "/"
+sh = os.sep
+
 
 @app.route('/')
 @app.route('/home')
@@ -76,6 +79,9 @@ def logout():
 
 @app.route("/result", methods=['GET', 'POST'])
 def process_images():
+    print("started")
+    print(datetime.datetime.now())
+    t1 = datetime.datetime.now()
     image_values = []
     return_values = []
     
@@ -85,11 +91,13 @@ def process_images():
     compressed_list = [str(APP_ROOT) + sh +"uploads" + sh + filename for filename in os.listdir(APP_ROOT + sh + "uploads") if filename.endswith(VALID_COMPRESSED)]
     folder_list = []
     
+    # Commented out everything to delete files.
     # remove files that arent images or compressed folders
     for file in os.listdir(APP_ROOT + sh + "uploads"):
         path = str(APP_ROOT) + sh + "uploads" + sh + file
         if path not in image_list and path not in compressed_list:
-            os.remove(path) 
+            #os.remove(path) 
+            pass
     
     # Loop over and extract compressed folders, then deletes it.
     for file in compressed_list:
@@ -103,18 +111,46 @@ def process_images():
                 os.mkdir(file+".dir" + sh)
                 folder_list.append(file+".dir/")
                 zip.extractall(file+".dir/")
-        os.remove(file)
-
+        #os.remove(file)
+    #for file in compressed_list:
+    #    os.remove(file)
+    # Files not removed!!!
+    
+    print("compression done")
+    print(datetime.datetime.now())
+    t2 = datetime.datetime.now()
     
     # add images in the folders to be classified, and removes non-images
+    folder_img_list = []
     for folder in folder_list:
-        folder_img_list = [str(folder+filename) for filename in os.listdir(folder) if filename.endswith(VALID_IMAGES)]
-        image_list = image_list + folder_img_list
-        for file in os.listdir(folder):
-            path = str(folder + file)
-            if path not in folder_img_list:
-                os.remove(path) 
+        for subdir, dirs, files in os.walk(folder):
+            for file in files:
+                filepath = subdir + sh + file
+                if filepath.endswith(VALID_IMAGES):
+                    folder_img_list.append(filepath)
+                elif not os.path.isdir(filepath): # to make sure we don't delete a folder we want to walk in to
+                    #os.remove(filepath)  
+                    pass
+    
+        #folder_img_list = [str(folder+filename) for filename in os.listdir(folder) if filename.endswith(VALID_IMAGES)]
+        #image_list = image_list + folder_img_list
+        #for file in os.listdir(folder):
+        #    path = str(folder + file)
+        #    if path not in folder_img_list:
+        #       os.remove(path) 
+    print("Finished file thingo")
+    print(datetime.datetime.now())
+    t3 = datetime.datetime.now()
+    image_list = image_list + folder_img_list
+    
+    json_file = open(APP_ROOT + sh + 'ct3200.dir' + sh + 'model.json', 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    loaded_model = model_from_json(loaded_model_json)
 
+    # load weights into new model
+    loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
+    
     # classifies all image files
     for file in image_list:
         name = " " + file.split("/")[-1] + "<br>"
@@ -123,19 +159,29 @@ def process_images():
         pix_val = list(result.getdata())
         norm_val = [i/255 for i in pix_val]
         image_values.append((norm_val, name))
-        os.remove(file)
-    for folder in folder_list:
-        os.rmdir(folder)
+        initial.close()
+        #os.remove(file)
+    #for folder in folder_list:
+    #    os.rmdir(folder)
+    # Folder not deleted!!
+    counter = 0
     for i in image_values:
-        return_values.append((CNN(i[0]),i[1]))
+        counter = counter + 1
+        return_values.append((CNN(i[0], loaded_model, counter),i[1]))
     x = json.jsonify(return_values)
     print(x)
     print(return_values)
+    print(datetime.datetime.now())
+    t4 = datetime.datetime.now()
+    tot_time = t4 - t1
+    print(str(tot_time))
+
     ret = ""
+    rep = APP_ROOT + sh + "uploads" + sh
     for i in return_values:
         for j in i:
-            ret = ret + "".join(j)
-    print(ret)
+            ret = ret + "".join(j).replace(rep,"")
+    #print(ret)
     return json.jsonify(ret)
     
     
@@ -155,8 +201,9 @@ def process_images():
     """
 
 
-def CNN(lines):
+def CNN(lines, loaded_model, number):
     """ Takes an array of values """
+    print(number)
 
     num_classes = 3
     # num_classes0 = 2 Not sure why this is here
@@ -194,18 +241,18 @@ def CNN(lines):
     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
 
     # load json and create model
-    json_file = open(APP_ROOT + sh + 'ct3200.dir' + sh + 'model.json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    loaded_model = model_from_json(loaded_model_json)
+    #json_file = open(APP_ROOT + sh + 'ct3200.dir' + sh + 'model.json', 'r')
+    #loaded_model_json = json_file.read()
+    #json_file.close()
+    #loaded_model = model_from_json(loaded_model_json)
 
     # load weights into new model
-    loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
-    print("Loaded model from disk")
+    #loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
+    #print("Loaded model from disk")
 
     y_vec = np.zeros(num_classes)
     y_pred = loaded_model.predict(x_test)
-    print(y_pred[:ntest])
+    #print(y_pred[:ntest])
 
     #return_values.append(str(ntest)+" || ")
 
@@ -215,18 +262,19 @@ def CNN(lines):
         y_type = np.argmax(y_vec)
         prob = y_vec[y_type]
 
-        print('i=', i, 'G-type=', y_type, 'P', prob)
+        #print('i=', i, 'G-type=', y_type, 'P', prob)
     #  Original  type-1 is output
         #out_str = str(y_type) + ', ' + str(y_vec[0]) + ', '+ str(y_vec[1]) + ', ' + str(y_vec[2]) + "\n"
         out_str = '  i=' + str(i) + '  \nG-type=' + \
             str(y_type) + '  P=' + str(prob)
         # return_values.append(out_str)
+        formatted_prob = prob * 100
         if y_type == 0:
-            return_values.append("E")
+            return_values.append("E - {0:.2f}".format(prob))
         if y_type == 1:
-            return_values.append("S0")
+            return_values.append("S0 - {0:.2f}".format(prob))
         if y_type == 2:
-            return_values.append("Sp")
+            return_values.append("Sp - {0:.2f}".format(prob))
     return return_values
 
 

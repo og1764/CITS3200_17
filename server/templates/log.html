@@ -10,6 +10,7 @@
     <title>Log in</title>
     {% endif %}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../static/style.css" rel="stylesheet" type="text/css" media="all">
 </head>
 <style>
   * {
@@ -43,11 +44,8 @@
   }
 
   .login .formInLogin .btn {
-    background: #92b4f0;
-    color: snow;
     font-size: 18px;
     cursor: pointer;
-    border: 2px solid lightgrey;
     width: 200px;
     height: 30px;
     margin-left: 20px;
@@ -85,14 +83,14 @@
       <div class="formInLogin">
         <p>
           <!-- username -->
-          {{ form.username(size = 60, placeholder = "USERNAME",class_="input") }}
+          {{ form.username(size = 60, placeholder = " username",class_="input") }}
           {% for error in form.username.errors %}
           <span style="color: red;">[ {{ error}} ] </span>
           {% endfor %}
         </p>
         <p>
           <!-- password-->
-          {{ form.password(size = 60, placeholder = "PASSWORD",class_="input") }}
+          {{ form.password(size = 60, placeholder = " password",class_="input") }}
           {% for error in form.password.errors %}
           <span style="color: red;">[ {{ error}} ]</span>
           {% endfor %}
@@ -108,7 +106,7 @@
         </p>
         <!-- redirect for register -->
         <div class="m">
-          Don`t have account? <span>Please contact Kenji</span>
+          <span>Don`t have account?<br>Please contact Kenji</span>
         </div>
       </div>
     </form>

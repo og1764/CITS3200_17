@@ -120,7 +120,7 @@ Before you put up a pull request.
 
 ### Packages Required
 
-<p>In order to run the main program, flaskapp.py, you will need to install the following 3 packages before you can run it. (If you dont install these you will get an error).</p>
+<p>In order to run the main program, flaskapp.py, you will need to install the following packages before you can run it. (If you dont install these you will get an error).</p>
 <p>These packages are:</p>
 <ul>
     <li>keras</li>

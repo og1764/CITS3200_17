@@ -1,7 +1,7 @@
 function processFiles() {
     $.get("/result", function(data, status){
 		document.getElementById("output").innerHTML = data;
-		document.getElementById("output").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
+		document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
 	});
 }
 

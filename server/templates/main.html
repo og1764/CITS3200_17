@@ -9,11 +9,25 @@
   <link href="../static/style.css" rel="stylesheet" type="text/css" media="all">
   <script src="https://rawgit.com/enyo/dropzone/master/dist/dropzone.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-  <script src="../static/js/copy-clipboard.js"></script>
-  <script src="../static/js/process-images.js"></script>
+  <script src="../static/script.js"></script>
 </head>
 
 <body>
+  <nav class="navbar navbar-expand-sm">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="{{ url_for('main') }}">Tool</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#">User Manual</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+      <li>
+    </ul>
+  </nav>
   <div class="jumbotron text-center">
     <h1>Galaxy Classification Tool</h1>
   </div>
@@ -32,55 +46,19 @@
         <form action="/upload" class="dropzone" id="my-dropzone">
           <div class="dz-message">Drag and drop an image here, or click to upload.</div>
         </form>
-		<br>
-		<button onclick="processFiles()">Classify!</button>
-		<br>
-        <p class="mt-5">Output:</p>
-		<p id="p2"></p>
+        <br>
+        <button class="mb-5" id="classify" onclick="processFiles()">Classify!</button>
+        <p>Output:</p>
+        <p id="results"></p>
         <div class="card">
-          <div class="card-body" id="output">
-            <p id="p1">Example text</p>
+          <div class="card-body">
+            <p id="output">Example text</p>
           </div>
         </div>
         <br>
-        <button onclick="copyToClipboard('#p1')">Copy result to clipboard</button>
+        <button class="mb-5" onclick="copyToClipboard('#output')">Copy result to clipboard</button>
       </div>
     </div>
   </div>
-  <div>
-    <a class="bt" href="{{ url_for('logout') }}"><button type="button" class="btn btn-warning" style="margin:0 auto;display:block">
-      <span>Logout<span></button></a>  
-  </div>
-
-<script type="text/javascript">
-  
-    Dropzone.autoDiscover = false;
-
-    var myDropzone = new Dropzone(".dropzone", { 
-      addRemoveLinks: true,
-      removedfile: function(file) {
-        var fileName = file.name; 
-        
-        $.ajax({
-          type: 'POST',
-          url: '../static/upload.php',
-          data: {name: fileName,request: 'delete'},
-        });
-  
-        var _ref;
-        return (_ref = file.previewElement) != null ? _ref.parentNode.removeChild(file.previewElement) : void 0;
-       }
-    });
-
-    function removeFunction() {
-        Dropzone.forElement(".dropzone").removeAllFiles(true);
-    };
-
-    var el = document.getElementById("classify");
-    el.addEventListener("click", removeFunction);
-      
-</script>
-
-
 </body>
 </html>

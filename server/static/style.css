@@ -14,11 +14,11 @@
 }
 
 .dz-preview.dz-image-preview {
-    background: transparent !important;
+    background: transparent;
 }
 
 .dz-image {
-    border-radius: 8px !important;
+    border-radius: 8px;
 }
 
 .dz-remove {
@@ -31,19 +31,51 @@
     background-size: cover;
 }
 
-.login .formInLogin .btn {
-    background: var(--subsection-bg) !important;
-    border: 2px dashed var(--border-colour) !important;
-    border-radius: 8px;
-    color: var(--text-colour);
+.login {
+  width: 240px;
+  height: 500px;
+  margin: 0 auto;
 }
 
-.login .m a {
-    color: var(--text-colour);
+.login .title {
+  font-size: 32px;
+  text-align: center;
+  line-height: 100px;
+  margin-top: 60px;
+}
+
+.login .formInLogin .input {
+  width: 100%;
+  margin-bottom: 18px;
+  border: 0;
+  padding: 11px 0px;
+  border-bottom: 1px solid grey;
+  font-size: 16px;
+  border-radius: 8px;
+  border-width: 2px;
+  border-color: var(--text-colour);
+  color: var(--text-colour);
+  background-color: var(--subsection-bg);
+}
+
+.login .formInLogin .btn {
+  font-size: 18px;
+  width: 200px;
+  height: 30px;
+  margin-left: 20px;
+  margin-top: 10px;
+  padding-top: 0px;
+  border-radius: 8px;
+  border-width: 2px;
+  border-color: var(--text-colour);
+  color: var(--text-colour);
+  background-color: var(--subsection-bg);
 }
 
 .login .m {
-    line-height: 36px !important;    
+  text-align: center;
+  line-height: 36px;
+  color: var(--text-colour)
 }
 
 img {
@@ -52,7 +84,7 @@ img {
 }
 
 h1, body, label, p, span, ::placeholder {
-    color: var(--text-colour) !important;
+    color: var(--text-colour);
 }
 
 .form-control {
@@ -68,18 +100,22 @@ h1, body, label, p, span, ::placeholder {
 }
 
 body {
-    background-color: var(--main-bg) !important;
+    background-color: var(--main-bg);
 }
 
-button, input, .btn-warning {
+button, .btn {
     border-radius: 8px;
     border-width: 2px;
-    border-color: var(--text-colour) !important;
-    color: var(--text-colour) !important;
-    background-color: var(--subsection-bg) !important;
+    border-color: var(--text-colour);
+    color: var(--text-colour);
+    background-color: var(--subsection-bg);
 }
 
-.btn-warning-hover {
-    border-color: gray !important;
-    background-color: var(--main-bg) !important;
+.nav-link, .btn:hover {
+    color: var(--text-colour);
+}
+
+.active, .nav-link:hover {
+    color: var(--text-colour);
+    background-color: var(--subsection-bg);
 }

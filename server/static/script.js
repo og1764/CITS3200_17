@@ -1,4 +1,5 @@
 function processFiles() {
+	//Dropzone.forElement('.dropzone').processQueue();
     $.get("/result", function(data, status){
 		document.getElementById("output").innerHTML = data;
 		document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';

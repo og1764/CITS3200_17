@@ -31,6 +31,8 @@ import sys
 import tarfile
 import zipfile
 import datetime
+import random
+import string
 
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -66,6 +68,7 @@ def files_in_folder(dirName):
         if os.path.isdir(path):
             result = result + files_in_folder(path)
         elif not path.endswith(VALID_COMPRESSED):
+            print(path)
             result.append(path)
     return result
 
@@ -120,15 +123,16 @@ def logout():
 # To go to this webpage you would need to add "/Examplepage" to the end of the main page url
 
 
-@app.route("/result", methods=['GET', 'POST'])
-def process_images():
+#@app.route("/result", methods=['GET', 'POST'])
+@app.route("/result")
+def process_images(target):
     print("started")
     print(datetime.datetime.now())
     t1 = datetime.datetime.now()
     image_values = []
     return_values = []
     folder_list = []
-    uploads_path = str(APP_ROOT) + sh + "uploads"    
+    uploads_path = target 
     compressed_list = [uploads_path + sh + filename for filename in os.listdir(uploads_path) if filename.endswith(VALID_COMPRESSED)]
     print(compressed_list)
     
@@ -152,7 +156,7 @@ def process_images():
     
     # Check out my onlyfiles ;)
     onlyfiles = files_in_folder(uploads_path)
-    #print(onlyfiles)
+    print(onlyfiles)
     
     # Moved this out of the CNN function because its expensive, so its better to only call once.
     json_file = open(APP_ROOT + sh + 'ct3200.dir' + sh + 'model.json', 'r')
@@ -164,8 +168,8 @@ def process_images():
     
     # classifies all files, gives an error if not a valid image type.
     for file in onlyfiles:
-        name = " " + file.split("/")[-1]
-        error_counter = 0
+        name = " " + file.split(sh)[-1]
+        print(name)
         try:
             initial = Image.open(file)
             result = initial.resize((50, 50)).convert("L")
@@ -186,6 +190,7 @@ def process_images():
     # counter is not really useful, but it's nice to see the console doing things.
     counter = 0
     for i in image_values:
+        #print(i)
         counter = counter + 1 
         if i[1] != "":
             return_values.append((CNN(i[0], loaded_model, counter),i[1]))
@@ -210,7 +215,7 @@ def process_images():
     # Removing the empty zipped folders.
     for folder in folder_list:
         shutil.rmtree(folder)
-    
+    shutil.rmtree(target)
     print(datetime.datetime.now())
     t4 = datetime.datetime.now()
     tot_time = t4 - t1
@@ -218,10 +223,9 @@ def process_images():
 
     # Just a bit of formatting
     ret = ""
-    rep = APP_ROOT + sh + "uploads" + sh
     for i in return_values:
         for j in i:
-            ret = ret + "".join(j).replace(rep,"")
+            ret = ret + "".join(j).replace(target,"")
     if ret == "":
         ret = "Example text"
     else: # If something was actually classified
@@ -231,7 +235,8 @@ def process_images():
         toSend = ret.replace("<br>", "\n")
         f.write(toSend)
         f.close()
-    return json.jsonify(ret)
+    print(ret)
+    return ret
     
 
 
@@ -314,17 +319,27 @@ def CNN(lines, loaded_model, number):
 
 @app.route("/upload", methods=['POST'])
 def upload():
-    target = os.path.join(APP_ROOT, 'uploads/')
-    if not os.path.exists(target):
-        os.mkdir(target)
-        
-    for file in request.files.getlist("file"):
+    up_folder = str(APP_ROOT) + sh + "uploads" + sh
+    if not os.path.exists(up_folder):
+        os.mkdir(up_folder)
+    rand_folder = ''.join(random.choice(string.ascii_letters) for i in range(12))
+    target = str(APP_ROOT) + sh + "uploads" + sh + rand_folder + sh
+    print(target)
+    while os.path.exists(target):
+        rand_folder = ''.join(random.choice(string.ascii_letters) for i in range(12))
+        target = str(APP_ROOT) + sh + "uploads" + sh + rand_folder + sh
+
+    
+    os.mkdir(target)
+    
+    for file in request.files.values():
         filename = file.filename
-        destination = "/".join([target, filename])
+        destination = sh.join([target, filename])
         file.save(destination)
+
     #output = process_images()
     # print(output)
-    return "Done"
+    return process_images(target)
 
 
 if __name__ == "__main__":

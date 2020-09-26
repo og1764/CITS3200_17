@@ -34,7 +34,6 @@ import datetime
 import random
 import string
 
-
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar") # TODO: Add 7z, Add rar,
 # tuple so it can be used with .endswith
@@ -341,6 +340,5 @@ def upload():
     # print(output)
     return process_images(target)
 
-
 if __name__ == "__main__":
-    app.run(debug=True, host='localhost')
+    app.run()

@@ -1,1 +1,1 @@
-web: gunicorn app:flaskapp 
+web: gunicorn --chdir server app:app --preload

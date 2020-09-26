@@ -101,9 +101,9 @@ I think on windows the command would be:
 
 ```python3 -m pip3 install flask```
 
-I have just added a  python file called flaskapp.py which will contain the main function that will run our web app. If you go inside the file you'll see how simple it is to add pages. At the moment there are two pages, but to add more you would simply copy the the example function and write a new app route with the name of the url that you want and dont forget to give your function a different name.
+I have just added a  python file called app.py which will contain the main function that will run our web app. If you go inside the file you'll see how simple it is to add pages. At the moment there are two pages, but to add more you would simply copy the the example function and write a new app route with the name of the url that you want and dont forget to give your function a different name.
 
-All you need to do to run the web app is to run the flaskapp.py file like you would any other python program.
+All you need to do to run the web app is to run the app.py file like you would any other python program.
 If you are running the main function with:
 
 ```app.run()```
@@ -120,7 +120,7 @@ Before you put up a pull request.
 
 ### Packages Required
 
-<p>In order to run the main program, flaskapp.py, you will need to install the following packages before you can run it. (If you dont install these you will get an error).</p>
+<p>In order to run the main program, app.py, you will need to install the following packages before you can run it. (If you dont install these you will get an error).</p>
 <p>These packages are:</p>
 <ul>
     <li>keras</li>

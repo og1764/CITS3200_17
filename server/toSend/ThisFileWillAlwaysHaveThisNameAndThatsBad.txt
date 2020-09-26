@@ -1,1 +1,4 @@
-S0 - 82.73% - download.jpg
+Sp - 51.97% - 17387.jpg 
+S0 - 99.88% - download.jpg 
+Could not classify "<b>Fortinet.exe</b>" as <b>.exe</b> is not a valid file extension. 
+S0 - 93.45% - galaxy.jpg 

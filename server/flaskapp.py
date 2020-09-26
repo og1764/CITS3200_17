@@ -341,5 +341,4 @@ def upload():
     return process_images(target)
 
 
-if __name__ == "__main__":
-    app.run(debug=True, port=33507)
+app.run(debug=True, port=33507)

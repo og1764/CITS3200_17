@@ -1,1 +1,1 @@
-web: gunicorn app:app --preload
+web: gunicorn --chdir server app:app --preload

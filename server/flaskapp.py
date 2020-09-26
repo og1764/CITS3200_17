@@ -34,8 +34,6 @@ import datetime
 import random
 import string
 
-port = int(os.environ.get('PORT', 33507))
-
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar") # TODO: Add 7z, Add rar,
 # tuple so it can be used with .endswith
@@ -342,5 +340,5 @@ def upload():
     # print(output)
     return process_images(target)
 
-
-app.run(debug=True, port=port)
+if __name__ == "__main__":
+    app.run()

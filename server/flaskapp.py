@@ -53,7 +53,7 @@ login.login_view = 'login'
 sh = os.sep
 
 
-@app.route('https://galaxy-classification-app.herokuapp.com/')
+@app.route('/')
 @app.route('/home')
 def example():
     return render_template('example.html', title='Example')

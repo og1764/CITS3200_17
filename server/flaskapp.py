@@ -175,12 +175,12 @@ def process_images(target):
             result = initial.resize((50, 50)).convert("L")
             pix_val = list(result.getdata())
             norm_val = [i/255 for i in pix_val]
-            image_values.append((norm_val, name+ "<br>"))
+            image_values.append((norm_val, name+ " <br>"))
             initial.close()
         except UnidentifiedImageError:
             print("Unidentified Image Error")
             extension = name.split(".")[-1]
-            error_message = 'Could not classify "<b>{}</b>" as <b>.{}</b> is not a valid file extension.<br>'.format(name.lstrip(), extension.rstrip())
+            error_message = 'Could not classify "<b>{}</b>" as <b>.{}</b> is not a valid file extension. <br>'.format(name.lstrip(), extension.rstrip())
             image_values.append((error_message, ""))
         except:
             print(str(sys.exc_info()[1]) + " @ Line "+ str(sys.exc_info()[2].tb_lineno))

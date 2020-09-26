@@ -34,6 +34,8 @@ import datetime
 import random
 import string
 
+port = int(os.environ.get('PORT', 33507))
+
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar") # TODO: Add 7z, Add rar,
 # tuple so it can be used with .endswith
@@ -51,7 +53,7 @@ login.login_view = 'login'
 sh = os.sep
 
 
-@app.route('/')
+@app.route('https://galaxy-classification-app.herokuapp.com/')
 @app.route('/home')
 def example():
     return render_template('example.html', title='Example')
@@ -341,4 +343,4 @@ def upload():
     return process_images(target)
 
 
-app.run(debug=True, port=33507)
+app.run(debug=True, port=port)

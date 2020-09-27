@@ -1,2 +1,3 @@
 *.jpeg
-*.tar.
+*.tar.*
+__pycache__

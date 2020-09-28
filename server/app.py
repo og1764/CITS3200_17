@@ -34,6 +34,13 @@ import datetime
 import random
 import string
 
+import time
+import requests
+from bs4 import BeautifulSoup
+from stat import S_ISREG, ST_CTIME, ST_MODE
+import urllib.request
+
+
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar") # TODO: Add 7z, Add rar,
 # tuple so it can be used with .endswith
@@ -49,6 +56,11 @@ login.login_view = 'login'
 #else:
 #    sh = "/"
 sh = os.sep
+
+img_types = ['.jpg', '.png']
+#global vars for updating site background sequentially from folder of images 
+bg_index = 0
+bg_set_time = 0.0
 
 
 @app.route('/')
@@ -70,6 +82,8 @@ def files_in_folder(dirName):
             print(path)
             result.append(path)
     return result
+
+
 
 @login.user_loader
 def load_user(user_id):
@@ -97,6 +111,7 @@ def login():
 @app.route("/main", methods=['GET', 'POST'])
 @login_required
 def main():
+    choose_new_background(mode='latest', interval=60*60*6)  #[seconds] 60*60*24 = once every 24 hours
     return render_template('main.html', title='Main')
 
 # This is more than a little jank. We're going to have to figure out how to use identifiers here as well
@@ -237,6 +252,98 @@ def process_images(target):
     print(ret)
     return ret
     
+
+
+def download_img(url):
+    destination = str(APP_ROOT) + sh + "backgrounds" + sh
+    split_list = url.split("/")
+    name = split_list[len(split_list)-1]
+    filename = destination + str(name)
+    urllib.request.urlretrieve(url, filename)
+
+def scrape_img_url(url, root_url):
+    headers = {'User-Agent': "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.90 Safari/537.36"}
+    response = requests.request("GET", url, headers=headers)
+    data = BeautifulSoup(response.text, 'html.parser')
+
+    # find all with the image tag
+    images = data.find_all('img', src=True)
+    # select src tag
+    image_src = [x['src'] for x in images]
+    img_adr = ""
+    #select the first image on the page
+    if len(image_src) > 0:
+        img_adr = image_src[0]
+
+    img_url = root_url + img_adr
+    return img_url
+
+def create_backgrounds_folder():
+    #make backgrounds folder if it doesn't already exist
+    destination = str(APP_ROOT) + sh + "backgrounds" + sh
+    if not os.path.exists(destination):
+        os.mkdir(destination)
+
+def download_background():
+    url = "https://apod.nasa.gov/apod/astropix.html"
+    root_url = "https://apod.nasa.gov/apod/"
+    img_url = scrape_img_url(url, root_url)
+    download_img(img_url)
+
+def choose_new_background(mode='latest', interval=0): #mode latest|sequence, interval in seconds
+    global bg_index
+    global bg_set_time
+
+    if time.time() > bg_set_time + interval:
+        create_backgrounds_folder()
+        ###run updates to the background here
+        ###background downloaded and prepared for detection by css once every time interval
+            
+        bg_dir_location = str(APP_ROOT) + sh + "backgrounds" + sh
+        bg_destination = str(APP_ROOT) + sh + "static" + sh + "img" + sh + "background.jpg"
+
+        if mode == 'latest':
+            try:
+                download_background()
+                file_list = files_sorted_by_date(bg_dir_location)
+                latest_file = file_list[0]
+                bg_location = bg_dir_location + latest_file[1]
+                print(latest_file)
+                shutil.copy2(bg_location, bg_destination)
+            except:
+                print("No images found in " + bg_dir_location)
+        
+        elif mode == 'sequence':
+            try:
+                file_list = files_sorted_by_date(bg_dir_location)
+                bg_index = (bg_index + 1) % len(file_list)
+                next_file = file_list[bg_index]
+                bg_location = bg_dir_location + next_file[1]
+                print(next_file)
+                shutil.copy2(bg_location, bg_destination)
+
+            except:
+                print("No images found in " + bg_dir_location)
+        
+        #record the time at which the background updates were run
+        bg_set_time = time.time()
+            
+
+def files_sorted_by_date(dir_path):
+    #all entries in the directory w/ stats
+    data = (os.path.join(dir_path, fn) for fn in os.listdir(dir_path) 
+        if fn.endswith(img_types[0]) or fn.endswith(img_types[1]))
+    data = ((os.stat(path), path) for path in data)
+    # regular files, insert creation date
+    data = ((stat[ST_CTIME], path) for stat, path in data if S_ISREG(stat[ST_MODE]))
+    
+    file_list = []
+    for cdate, path in sorted(data):
+        file_list.append([time.ctime(cdate), os.path.basename(path)])
+    file_list.reverse()
+
+    return file_list
+
 
 
 def CNN(lines, loaded_model, number):

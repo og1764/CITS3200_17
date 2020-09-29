@@ -780,7 +780,7 @@ def upload():
     #thread = multiprocessing.Process(target=process_images, args=(GLOBAL_FOLDER_DICT[rand_identifier][2],))
     #thread.start()
     f = _pool.apply_async(process_images,[GLOBAL_FOLDER_DICT[rand_identifier][2], GLOBAL_FOLDER_DICT])
-    r = f.get(timeout=2)
+    r = f.get()
     print(r)
     #return 'Result is %d'%r
 

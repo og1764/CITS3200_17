@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+  integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link href="../static/style.css" rel="stylesheet" type="text/css" media="all">
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-sm">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('main') }}">Tool</a>
+      </li>
+      <li class="nav-item active">
+        <a class="nav-link" href="{{ url_for('manual') }}">User Manual</a>
+      </li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item">
+        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+      <li>
+    </ul>
+  </nav>
+  <div class="jumbotron text-center">
+    <h1>Galaxy Classification Tool</h1>
+  </div>
+  <div class="container-fluid">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <h1>User manual</h1>
+        <h3>Getting In</h3>
+        <p>To use the website as a regular user it is relatively simple, load up the webpage and enter the password that can be obtained through Kenji (the owner) either in person or by the email address provided (note that this password is subject to change as the owner sees fit). </p>
+        <h3>Using Classifier</h3>
+        <p>Once you have entered the password you are onto the main webpage. From here there is a drop-down menu of classification types, click here and select the type of classification you would like to use. </p>
+        <p>Drag and drop your images into the box provided or by clicking inside the box a menu pops up allowing you to select the files you wish to upload (within the limit), if you upload the wrong image then beneath the image when its uploaded there is a remove button to get rid of the image. You can only upload images that are in the formats listed and can only upload compressed files of the formats listed. </p>
+        <p>Now you just click the “Classify!” button to get the result. If multiple images are uploaded then there will be multiple results provided, if there are more than 10 then a text file can be downloaded where each line contains the results of the respective galaxy. Press the “Copy results to clipboard” button to save the output to your clipboard.</p>
+
+      </div>
+    </div>
+  </div>
+  <script src="../static/script.js"></script>
+</body>
+</html>

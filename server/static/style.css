@@ -83,8 +83,14 @@ img {
     min-height: 120px;
 }
 
-h1, body, label, p, span, ::placeholder {
+h1, h3, body, label, span, ::placeholder {
     color: var(--text-colour);
+}
+
+p {
+    color: var(--text-colour);
+    text-align: justify;
+    text-justify: inter-word;
 }
 
 .form-control {

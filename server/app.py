@@ -114,6 +114,11 @@ def main():
     choose_new_background(mode='latest', interval=60*60*6)  #[seconds] 60*60*24 = once every 24 hours
     return render_template('main.html', title='Main')
 
+@app.route("/manual", methods=['GET', 'POST'])
+def manual():
+    choose_new_background(mode='latest', interval=60*60*6)  #[seconds] 60*60*24 = once every 24 hours
+    return render_template('manual.html', title='Manual')
+
 # This is more than a little jank. We're going to have to figure out how to use identifiers here as well
 @app.route('/getResults')
 def returnFile():

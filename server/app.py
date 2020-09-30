@@ -1,47 +1,39 @@
-from config import Config
-from Form import LoginForm
-from Model import query_user, User
-from flask import Flask, render_template, request, json
-from flask import render_template, flash, redirect, url_for, request, send_from_directory, send_file, Response
-from flask_login import logout_user, login_user, current_user, login_required, LoginManager
-from werkzeug.urls import url_parse
-from flask_wtf import FlaskForm
-from wtforms import SelectField, SubmitField
-from wtforms.validators import ValidationError, DataRequired
-
+import datetime
+import glob
 import keras
-from keras.datasets import mnist
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras import backend as K
-from keras.utils import np_utils
-from keras.models import model_from_json
 import keras.callbacks
 import numpy as np
-import os.path
 import os
+import os.path
+import random
+import requests
 import shutil
+import string
+import sys
+import tarfile
+import time
+import urllib.request
+import zipfile
+from Form import LoginForm
+from Model import query_user, User
+from PIL import Image, UnidentifiedImageError
+from bs4 import BeautifulSoup
+from config import Config
+from flask import flash, Flask, json, redirect, render_template, request, Response, send_file, send_from_directory, url_for
+from flask_login import current_user, login_required, login_user, LoginManager, logout_user
+from flask_wtf import FlaskForm
+from keras import backend as K
+from keras.datasets import mnist
+from keras.layers import Conv2D, Dense, Dropout, Flatten, MaxPooling2D
+from keras.models import model_from_json, Sequential
+from keras.utils import np_utils
 from os import listdir
 from os.path import isfile, join
-import glob
-from PIL import Image, UnidentifiedImageError
-import sys
-
-import tarfile
-import zipfile
-import datetime
-import random
-import string
-from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
-import multiprocessing
-from multiprocessing import Pool
-
-import time
-import requests
-from bs4 import BeautifulSoup
 from stat import S_ISREG, ST_CTIME, ST_MODE
-import urllib.request
+from werkzeug.urls import url_parse
+from wtforms import SelectField, SubmitField
+from wtforms.validators import DataRequired, ValidationError
+
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar")  # TODO: Add 7z, Add rar,
@@ -55,10 +47,6 @@ app.secret_key = 'SECRET KEY'
 login = LoginManager(app)
 login.login_view = 'login'
 
-# if os.name == "nt":
-#    sh = "\\"
-# else:
-#    sh = "/"
 sh = os.sep
 
 img_types = ['.jpg', '.png']
@@ -98,7 +86,6 @@ def process_compressed(compressed_list):
 
 # target = FULL PATH of a folder
 def files_in_folder(target):
-
     file_list = os.listdir(target)
     result = []
     # Iterate over all the entries
@@ -115,7 +102,6 @@ def files_in_folder(target):
 # files = array of images
 def normalise_images(files, target):
     # classifies all files, gives an error if not a valid image type.
-    
     for file in files:
         #name = " " + file.split(sh)[-1]
         name = file.replace(target, "")
@@ -196,15 +182,6 @@ def format_results(ID, results, GLOBAL_FOLDER_DICT):
     f.close()
     if ret == "":
         ret = "Example text"
-    else:  # If something was actually classified
-        # This is all for the returnFile() function. We need to figure out how to use identifiers though
-        # Because it's a bit of a jank-fest atm, and it really only supports one user.
-        # This one needs to be fixed
-        f = open(APP_ROOT + sh + "toSend" + sh + "ThisFileWillAlwaysHaveThisNameAndThatsBad.txt", "w")
-        toSend = ret.replace("<br>", "\n")
-        f.write(toSend)
-        f.close()
-
     return ret
 
 
@@ -343,21 +320,8 @@ def CNN(lines, loaded_model, number):
     x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
 
-    # load json and create model
-    # json_file = open(APP_ROOT + sh + 'ct3200.dir' + sh + 'model.json', 'r')
-    # loaded_model_json = json_file.read()
-    # json_file.close()
-    # loaded_model = model_from_json(loaded_model_json)
-
-    # load weights into new model
-    # loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
-    # print("Loaded model from disk")
-
     y_vec = np.zeros(num_classes)
     y_pred = loaded_model.predict(x_test)
-    # print(y_pred[:ntest])
-
-    # return_values.append(str(ntest)+" || ")
 
     for i in range(ntest):
         for j in range(num_classes):
@@ -365,12 +329,7 @@ def CNN(lines, loaded_model, number):
         y_type = np.argmax(y_vec)
         prob = y_vec[y_type]
 
-        # print('i=', i, 'G-type=', y_type, 'P', prob)
-        #  Original  type-1 is output
-        # out_str = str(y_type) + ', ' + str(y_vec[0]) + ', '+ str(y_vec[1]) + ', ' + str(y_vec[2]) + "\n"
-        out_str = '  i=' + str(i) + '  \nG-type=' + \
-                  str(y_type) + '  P=' + str(prob)
-        # return_values.append(out_str)
+        out_str = '  i=' + str(i) + '  \nG-type=' + str(y_type) + '  P=' + str(prob)
         formatted_prob = prob * 100
         if y_type == 0:
             return_values.append("E - {0:.2f}% -".format(formatted_prob))
@@ -586,24 +545,12 @@ def upload():
         destination = sh.join([up_target, filename])
         file.save(destination)
 
-    # output = process_images()
-    # print(output)
     time_now = datetime.datetime.now(datetime.timezone.utc)
     LIFETIME = datetime.timedelta(days=1)
     expiry = time_now + LIFETIME
 
     GLOBAL_FOLDER_DICT[rand_identifier] = [rand_progress, rand_results, up_target, res_target, expiry]
     print(rand_identifier)
-    ''' START SUBPROCESS '''
-    ''' process_images(rand_identifier) '''
-    #thread = multiprocessing.Process(target=process_images, args=(GLOBAL_FOLDER_DICT[rand_identifier][2],))
-    #thread.start()
-    #f = _pool.apply_async(process_images,[GLOBAL_FOLDER_DICT[rand_identifier][2], GLOBAL_FOLDER_DICT])
-    #r = f.get()
-    #print(r)
-    #return 'Result is %d'%r
-
-    #process_images(GLOBAL_FOLDER_DICT[rand_identifier][2])
 
     # 202 Accepted
     return rand_identifier, 202
@@ -644,9 +591,4 @@ def check_progress(token):
 
 
 if __name__ == "__main__":
-    #_pool = Pool(processes=4)
-    #manager = multiprocessing.Manager()
-    #GLOBAL_FOLDER_DICT = manager.dict()
-    print("results folder gets cleared with the check_folder function, called in check_results")
-    print(" currently this isn't being called anywhere, but we can throw it somewhere")
     app.run()

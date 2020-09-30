@@ -113,11 +113,14 @@ def files_in_folder(target):
     return result
 
 # files = array of images
-def normalise_images(files):
+def normalise_images(files, target):
     # classifies all files, gives an error if not a valid image type.
-    image_values = []
+    
     for file in files:
-        name = " " + file.split(sh)[-1]
+        #name = " " + file.split(sh)[-1]
+        name = file.replace(target, "")
+        name = name.replace(".dir", "")
+        print(name)
         #print(name)
         try:
             initial = Image.open(file)
@@ -190,6 +193,10 @@ def format_results(ID, results, GLOBAL_FOLDER_DICT):
     f = open(GLOBAL_FOLDER_DICT[ID][1], "w+")
     for i in results:
         for j in i:
+            print("".join(j).replace(GLOBAL_FOLDER_DICT[ID][2],""))
+            print(j)
+            print(GLOBAL_FOLDER_DICT[ID][2])
+            print("***")
             ret = ret + "".join(j).replace(GLOBAL_FOLDER_DICT[ID][2], "")
     f.write(ret)
     f.close()
@@ -651,7 +658,7 @@ def process_images(target, GLOBAL_FOLDER_DICT):
     loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
     print(3)
     # normalises image files, gives an error if not a valid image type.
-    image_values = normalise_images(onlyfiles)
+    image_values = normalise_images(onlyfiles, target)
     print(4)
     f = open(APP_ROOT + sh + "toSend" + sh + "NORM.txt", "w")
     f.write("hehexd")
@@ -792,6 +799,7 @@ def upload():
 @app.route('/start/<token>', methods=["GET"])
 def start_processing(token):
     return process_images(GLOBAL_FOLDER_DICT[token][2], GLOBAL_FOLDER_DICT)
+
 
 @app.route('/results/<token>', methods=["GET"])
 def check_results(token):

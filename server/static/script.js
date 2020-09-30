@@ -121,6 +121,27 @@ function move(total, completed) {
 	}
 }	
 
+
+
+function Get_Function(url, thi) {
+	var xhttp;
+	xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			document.getElementById("output").innerHTML = xhttp.responseText;
+			//document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
+			document.getElementById("results").innerHTML = '<button class="mb-5" id="DownloadResults" onclick="getFiles('.concat(status, '">Download!</button>');
+			thi.removeAllFiles()
+		}
+	};
+	xhttp.open("GET", url, true);
+	xhttp.send();
+}
+
+
+
+
+
 Dropzone.autoDiscover = false;
 	
 var myDropzone = new Dropzone(".dropzone", {
@@ -134,22 +155,35 @@ var myDropzone = new Dropzone(".dropzone", {
   init: function() {
 	this.on("successmultiple", function(data, status) {
 		//processFiles();
-		var prefix = '/progress/';
+		//var prefix = '/progress/';
 		//@app.route('/progress/<token>', methods=["GET"])
-		var _state = "";
-		var _total = 0;
-		var _count = 0;
-		var _ident = "";
-		console.log(document.getElementById("myBar"));
-		console.log(document.getElementById("myProgress"));
+		//var _state = "";
+		//var _total = 0;
+		//var _count = 0;
+		//var _ident = "";
+		//console.log(document.getElementById("myBar"));
+		//console.log(document.getElementById("myProgress"));
 		//document.getElementById("output").innerHTML = "<div id='myProgress'><div id='myBar'></div></div>";
-		httpGetAsync('/start/'.concat(status), randomCallback);
-		sleep(5000);
-		loadDoc('/progress/'.concat(status), Get_Progress);
+		//httpGetAsync('/start/'.concat(status), randomCallback);
+		//sleep(5000);
+		//loadDoc('/progress/'.concat(status), Get_Progress);
 		
-		//document.getElementById("output").innerHTML = "Loading...";
-		document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
-		this.removeAllFiles()
+		
+		document.getElementById("output").innerHTML = "Loading...";
+		Get_Function('/start/'.concat(status), this);
+		
+		// document.getElementById("output").innerHTML = "Loading...";
+		
+		// GET('/start/'.concat(status), callback, this)
+		
+		// Set results values
+		
+		// If results values not Example Text:
+			// update the href URL
+			// document.getElementById("results").innerHTML = '<button class="mb-5" id="DownloadResults" onclick="getFiles('.concat(status).concat('">Download!</button>';
+		
+		// do this inside the GET function
+		//this.removeAllFiles()
 	});
   },
 });

@@ -154,7 +154,7 @@ def bulk_classify(files, loaded_model, ID, GLOBAL_FOLDER_DICT):
             return_values.append((CNN(i[0], loaded_model, counter), i[1]))
         else:
             return_values.append((i[0], ""))
-        # rand_folder =
+        # Potentially remove this if we don't want to keep a progress text file
         f = open(GLOBAL_FOLDER_DICT[ID][0], "w")
         f.write("S: " + "NOT_COMPLETE\n")
         f.write("T: " + str(number_files) + "\n")
@@ -188,15 +188,9 @@ def file_cleanup(target, compressed, folders):
 # results = results from classification
 def format_results(ID, results, GLOBAL_FOLDER_DICT):
     ret = ""
-    print(ID)
-    print(results)
     f = open(GLOBAL_FOLDER_DICT[ID][1], "w+")
     for i in results:
         for j in i:
-            print("".join(j).replace(GLOBAL_FOLDER_DICT[ID][2],""))
-            print(j)
-            print(GLOBAL_FOLDER_DICT[ID][2])
-            print("***")
             ret = ret + "".join(j).replace(GLOBAL_FOLDER_DICT[ID][2], "")
     f.write(ret)
     f.close()
@@ -487,34 +481,29 @@ def logout():
 # @app.route("/result")
 # target = FULL PATH to folder
 def process_images(target, GLOBAL_FOLDER_DICT):
+    
     print("started")
-    f = open(APP_ROOT + sh + "toSend" + sh + "NEWNAMETEST.txt", "w")
-    f.write("hehexd")
-    f.close()
     print(datetime.datetime.now())
-    #sys.stdout.flush()
     t1 = datetime.datetime.now()
+    
     rand_identifier = target.split(sh)[-2]
-    #sys.stdout.flush()
     uploads_path = target
     results_path = GLOBAL_FOLDER_DICT[rand_identifier][1]
-    print(1)
+
     compressed_list = [target + sh + filename for filename in os.listdir(target) if filename.endswith(VALID_COMPRESSED)]
-    print(2)
+
     print(datetime.datetime.now())
+    
     # Loop over and extract compressed folders
+    
     folder_list = process_compressed(compressed_list)
-    f = open(APP_ROOT + sh + "toSend" + sh + "COMPRESSED.txt", "w")
-    f.write("hehexd")
-    f.close()
+
     print("extracting done")
     print(datetime.datetime.now())
-    #sys.stdout.flush()
 
     # Check out my onlyfiles ;)
     onlyfiles = files_in_folder(target)
     print(onlyfiles)
-    #sys.stdout.flush()
 
     # Moved this out of the CNN function because its expensive, so its better to only call once.
     json_file = open(APP_ROOT + sh + 'ct3200.dir' + sh + 'model.json', 'r')
@@ -523,28 +512,23 @@ def process_images(target, GLOBAL_FOLDER_DICT):
     loaded_model = model_from_json(loaded_model_json)
     # load weights into new model
     loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
-    print(3)
+    
     # normalises image files, gives an error if not a valid image type.
     image_values = normalise_images(onlyfiles, target)
-    print(4)
-    f = open(APP_ROOT + sh + "toSend" + sh + "NORM.txt", "w")
-    f.write("hehexd")
-    f.close()
 
     # sends normalised images into the classifier
-    # IN BULK CLASSIFY WE WANT TO:
-    # WRITE PROGRESS TO FILE
     return_values = bulk_classify(image_values, loaded_model, rand_identifier, GLOBAL_FOLDER_DICT)
-    print(5)
+
     # removes compressed files and folders after they've been extracted.
     file_cleanup(target, compressed_list, folder_list)
-    print(6)
+
+    # This formats results to be sent back and creates a text file
     to_send = format_results(rand_identifier, return_values, GLOBAL_FOLDER_DICT)
     # to_send is an array
-    print(7)
+
     ''' CREATE FILE '''
     print(rand_identifier)
-
+    # this updates the progress.txt file
     f = open(GLOBAL_FOLDER_DICT[rand_identifier][0], "w")
     f.write("S: " + "CLASSIFICATION_COMPLETE\n")
     f.write("T: " + str(len(onlyfiles)) + "\n")

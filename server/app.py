@@ -141,12 +141,13 @@ def bulk_classify(files, loaded_model, ID, GLOBAL_FOLDER_DICT):
         else:
             return_values.append((i[0], ""))
         # Potentially remove this if we don't want to keep a progress text file
-        f = open(GLOBAL_FOLDER_DICT[ID][0], "w")
-        f.write("S: " + "NOT_COMPLETE\n")
-        f.write("T: " + str(number_files) + "\n")
-        f.write("C: " + str(counter) + "\n")
-        f.write("K: " + str(ID) + "\n")
-        f.close()
+        # This is changing progress.txt , commented out for speeeed
+        #f = open(GLOBAL_FOLDER_DICT[ID][0], "w")
+        #f.write("S: " + "NOT_COMPLETE\n")
+        #f.write("T: " + str(number_files) + "\n")
+        #f.write("C: " + str(counter) + "\n")
+        #f.write("K: " + str(ID) + "\n")
+        #f.close()
     return return_values
 
 # target = FULL PATH of parent folder

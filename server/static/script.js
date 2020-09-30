@@ -27,6 +27,10 @@ function sleep(milliseconds) {
   }
 }
 
+function randomCallback(cb){
+	console.log(cb);
+}
+
 function loadDoc(url, cFunction) {
 	var xhttp;
 	xhttp = new XMLHttpRequest();
@@ -58,9 +62,11 @@ function loadDoc(url, cFunction) {
 function Get_Progress(xhttp, values) {
 	if (values[1] != values[2]){
 		console.log(values);
+		move(values[1], values[2])
 		sleep(3000);
 		loadDoc('/progress/'.concat(values[3]), Get_Progress);
 	} else {
+		move(values[1], values[1])
 		Get_Results('/results/'.concat(values[3]));
 	}
 }
@@ -94,6 +100,27 @@ function Download_File() {
 	xhttp.send();
 }
 
+function move(total, completed) {
+	console.log("MOVE");
+	var elem = document.getElementById("myBar");
+	elem.style.display = "block";
+	var curr = elem.style.width;
+	var wid = $(".myBar").width();
+	var perwid = $(".myBar").offsetParent().width()
+	var per = Math.round(100 * ( wid / perwid));
+	console.log(wid);
+	console.log(perwid);
+	console.log(per);
+	console.log(curr);
+	if(total != -1){
+		var compl_ = Math.floor((completed / total) * 100)
+		console.log(compl_);
+		if(compl_ > curr){
+			elem.style.width = compl_ + "%";
+		}
+	}
+}	
+
 Dropzone.autoDiscover = false;
 	
 var myDropzone = new Dropzone(".dropzone", {
@@ -113,10 +140,14 @@ var myDropzone = new Dropzone(".dropzone", {
 		var _total = 0;
 		var _count = 0;
 		var _ident = "";
+		console.log(document.getElementById("myBar"));
+		console.log(document.getElementById("myProgress"));
+		//document.getElementById("output").innerHTML = "<div id='myProgress'><div id='myBar'></div></div>";
+		httpGetAsync('/start/'.concat(status), randomCallback);
 		sleep(5000);
 		loadDoc('/progress/'.concat(status), Get_Progress);
 		
-		//document.getElementById("output").innerHTML = status;
+		//document.getElementById("output").innerHTML = "Loading...";
 		document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
 		this.removeAllFiles()
 	});

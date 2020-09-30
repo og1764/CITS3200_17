@@ -108,7 +108,7 @@ def files_in_folder(target):
         if os.path.isdir(path):
             result = result + files_in_folder(path)
         elif not path.endswith(VALID_COMPRESSED):
-            print(path)
+            #print(path)
             result.append(path)
     return result
 
@@ -118,7 +118,7 @@ def normalise_images(files):
     image_values = []
     for file in files:
         name = " " + file.split(sh)[-1]
-        print(name)
+        #print(name)
         try:
             initial = Image.open(file)
             result = initial.resize((50, 50)).convert("L")
@@ -624,16 +624,15 @@ def process_images(target, GLOBAL_FOLDER_DICT):
     #sys.stdout.flush()
     uploads_path = target
     results_path = GLOBAL_FOLDER_DICT[rand_identifier][1]
-
+    print(1)
     compressed_list = [target + sh + filename for filename in os.listdir(target) if filename.endswith(VALID_COMPRESSED)]
-
+    print(2)
     print(datetime.datetime.now())
     # Loop over and extract compressed folders
     folder_list = process_compressed(compressed_list)
     f = open(APP_ROOT + sh + "toSend" + sh + "COMPRESSED.txt", "w")
     f.write("hehexd")
     f.close()
-
     print("extracting done")
     print(datetime.datetime.now())
     #sys.stdout.flush()
@@ -650,10 +649,10 @@ def process_images(target, GLOBAL_FOLDER_DICT):
     loaded_model = model_from_json(loaded_model_json)
     # load weights into new model
     loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
-
+    print(3)
     # normalises image files, gives an error if not a valid image type.
     image_values = normalise_images(onlyfiles)
-
+    print(4)
     f = open(APP_ROOT + sh + "toSend" + sh + "NORM.txt", "w")
     f.write("hehexd")
     f.close()
@@ -662,13 +661,13 @@ def process_images(target, GLOBAL_FOLDER_DICT):
     # IN BULK CLASSIFY WE WANT TO:
     # WRITE PROGRESS TO FILE
     return_values = bulk_classify(image_values, loaded_model, rand_identifier, GLOBAL_FOLDER_DICT)
-
+    print(5)
     # removes compressed files and folders after they've been extracted.
     file_cleanup(target, compressed_list, folder_list)
-
+    print(6)
     to_send = format_results(rand_identifier, return_values, GLOBAL_FOLDER_DICT)
     # to_send is an array
-
+    print(7)
     ''' CREATE FILE '''
     print(rand_identifier)
 
@@ -779,9 +778,9 @@ def upload():
     ''' process_images(rand_identifier) '''
     #thread = multiprocessing.Process(target=process_images, args=(GLOBAL_FOLDER_DICT[rand_identifier][2],))
     #thread.start()
-    f = _pool.apply_async(process_images,[GLOBAL_FOLDER_DICT[rand_identifier][2], GLOBAL_FOLDER_DICT])
-    r = f.get()
-    print(r)
+    #f = _pool.apply_async(process_images,[GLOBAL_FOLDER_DICT[rand_identifier][2], GLOBAL_FOLDER_DICT])
+    #r = f.get()
+    #print(r)
     #return 'Result is %d'%r
 
     #process_images(GLOBAL_FOLDER_DICT[rand_identifier][2])
@@ -789,6 +788,10 @@ def upload():
     # 202 Accepted
     return rand_identifier, 202
 
+
+@app.route('/start/<token>', methods=["GET"])
+def start_processing(token):
+    return process_images(GLOBAL_FOLDER_DICT[token][2], GLOBAL_FOLDER_DICT)
 
 @app.route('/results/<token>', methods=["GET"])
 def check_results(token):

@@ -465,10 +465,10 @@ def main():
 
 
 # This is more than a little jank. We're going to have to figure out how to use identifiers here as well
-@app.route('/getResults')
-def returnFile():
+@app.route('/getResults/<token>')
+def returnFile(token):
     print("We're here!")
-    with open(APP_ROOT + sh + "toSend" + sh + "ThisFileWillAlwaysHaveThisNameAndThatsBad.txt") as f:
+    with open(GLOBAL_FOLDER_DICT[1]) as f:
         txt_content = f.read()
     toReturn = Response(
         txt_content,
@@ -482,139 +482,6 @@ def returnFile():
 def logout():
     logout_user()
     return redirect(url_for('login'))
-
-
-# Below is an example of how to add other pages
-# To go to this webpage you would need to add "/Examplepage" to the end of the main page url
-
-
-# @app.route("/result", methods=['GET', 'POST'])
-# @app.route("/result")
-def OLD_process_images(target):
-    print("started")
-    print(datetime.datetime.now())
-    t1 = datetime.datetime.now()
-    rand_folder = target.split(sh)[-2]
-    print(rand_folder)
-    image_values = []
-    return_values = []
-    folder_list = []
-    uploads_path = target
-    compressed_list = [uploads_path + sh + filename for filename in os.listdir(uploads_path) if
-                       filename.endswith(VALID_COMPRESSED)]
-    print(compressed_list)
-
-    # Loop over and extract compressed folders
-    for file in compressed_list:
-        if file.endswith((".tar", ".tar.gz")):
-            tf = tarfile.open(file)
-            os.mkdir(file + ".dir" + sh)
-            folder_list.append(file + ".dir" + sh)
-            tf.extractall(file + ".dir" + sh)
-            tf.close()
-        if file.endswith(".zip"):
-            with zipfile.ZipFile(file, 'r') as zip:
-                os.mkdir(file + ".dir" + sh)
-                folder_list.append(file + ".dir" + sh)
-                zip.extractall(file + ".dir" + sh)
-
-    print("extracting done")
-    print(datetime.datetime.now())
-    t2 = datetime.datetime.now()
-
-    # Check out my onlyfiles ;)
-    onlyfiles = files_in_folder(uploads_path)
-    print(onlyfiles)
-
-    # Moved this out of the CNN function because its expensive, so its better to only call once.
-    json_file = open(APP_ROOT + sh + 'ct3200.dir' + sh + 'model.json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    loaded_model = model_from_json(loaded_model_json)
-    # load weights into new model
-    loaded_model.load_weights(APP_ROOT + sh + "ct3200.dir" + sh + "model.h5")
-
-    # classifies all files, gives an error if not a valid image type.
-    for file in onlyfiles:
-        name = " " + file.split(sh)[-1]
-        print(name)
-        try:
-            initial = Image.open(file)
-            result = initial.resize((50, 50)).convert("L")
-            pix_val = list(result.getdata())
-            norm_val = [i / 255 for i in pix_val]
-            image_values.append((norm_val, name + " <br>"))
-            initial.close()
-        except UnidentifiedImageError:
-            print("Unidentified Image Error")
-            extension = name.split(".")[-1]
-            error_message = 'Could not classify "<b>{}</b>" as <b>.{}</b> is not a valid file extension. <br>'.format(
-                name.lstrip(), extension.rstrip())
-            image_values.append((error_message, ""))
-        except:
-            print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
-        os.remove(file)
-
-    # counter is not really useful, but it's nice to see the console doing things.
-    counter = 0
-    number_files = len(image_values)
-    for i in image_values:
-        # print(i)
-        counter = counter + 1
-        if i[1] != "":
-            return_values.append((CNN(i[0], loaded_model, counter), i[1]))
-            # POST to folder name with progress
-        else:
-            return_values.append((error_message, ""))
-
-    # removes compressed files after they've been extracted.
-    # this isnt in the above loop because I was getting weird permission errors where the zip was still in use
-    # Even after moving it all the way down here it still thinks its in use >:(
-    #
-    # This was the best solution I could come up with. We're going to get a lot of errors on this first try-catch but if it works...
-    try:
-        tf.close()
-    except:
-        print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
-    for file in compressed_list:
-        try:
-            os.remove(file)
-        except:
-            print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
-
-    # Removing the empty zipped folders.
-    for folder in folder_list:
-        shutil.rmtree(folder)
-    shutil.rmtree(target)
-    print(datetime.datetime.now())
-    t4 = datetime.datetime.now()
-    tot_time = t4 - t1
-    print("\nTime taken for this request: " + str(tot_time) + "\n")
-
-    # Just a bit of formatting
-    ret = ""
-    for i in return_values:
-        for j in i:
-            ret = ret + "".join(j).replace(target, "")
-    if ret == "":
-        ret = "Example text"
-    else:  # If something was actually classified
-        # This is all for the returnFile() function. We need to figure out how to use identifiers though
-        # Because it's a bit of a jank-fest atm, and it really only supports one user.
-        f = open(APP_ROOT + sh + "toSend" + sh + "ThisFileWillAlwaysHaveThisNameAndThatsBad.txt", "w")
-        toSend = ret.replace("<br>", "\n")
-        f.write(toSend)
-        f.close()
-    print(ret)
-    # POST to folder name
-
-    dictToSend = {'Total': number_files, 'Complete': counter, 'Results': ret}
-    res = requests.post('http://localhost:5000/get_file/' + rand_folder, json=dictToSend)
-    print
-    'response from server:', res.text
-    dictFromServer = res.json()
-
-    return ret
 
 
 # @app.route("/result")
@@ -692,42 +559,6 @@ def process_images(target, GLOBAL_FOLDER_DICT):
 
     return to_send
 
-    # POST to folder name
-
-    # dictToSend = {'Total': number_files, 'Complete': counter, 'Results': ret}
-    # res = requests.post('http://localhost:5000/get_file/' + rand_folder, json=dictToSend)
-    # print('response from server: ' + str(res.text))
-    # dictFromServer = res.json()
-
-
-# @app.route("/upload", methods=['POST'])
-def OLD_upload():
-    up_folder = str(APP_ROOT) + sh + "uploads" + sh
-    if not os.path.exists(up_folder):
-        os.mkdir(up_folder)
-    rand_folder = ''.join(random.choice(string.ascii_letters) for i in range(12))
-    target = str(APP_ROOT) + sh + "uploads" + sh + rand_folder + sh
-    print(target)
-    while os.path.exists(target):
-        rand_folder = ''.join(random.choice(string.ascii_letters) for i in range(12))
-        target = str(APP_ROOT) + sh + "uploads" + sh + rand_folder + sh
-
-    os.mkdir(target)
-
-    for file in request.files.values():
-        filename = file.filename
-        destination = sh.join([target, filename])
-        file.save(destination)
-
-    # output = process_images()
-    # print(output)
-
-    s = Serializer('WEBSITE_SECRET_KEY', 60 * 60 * 24)  # 60 secs by 60 mins by 24 hours
-    token = s.dumps({'user_id': rand_folder}).decode('utf-8')  # encode user id
-
-    # Make a POST request with the folder name
-
-    return process_images(target)
 
 
 @app.route("/upload", methods=['POST'])
@@ -752,9 +583,7 @@ def upload():
 
     os.mkdir(up_target)
     os.mkdir(res_target)
-    print(res_target)
-    print(os.path.exists(res_target))
-    print("fuck me")
+
     rand_progress = res_target + "progress.txt"
     f = open(rand_progress, "w")
     f.write("S: " + "NOT_COMPLETE\n")
@@ -831,7 +660,9 @@ def check_progress(token):
 
 
 if __name__ == "__main__":
-    _pool = Pool(processes=4)
-    manager = multiprocessing.Manager()
-    GLOBAL_FOLDER_DICT = manager.dict()
+    #_pool = Pool(processes=4)
+    #manager = multiprocessing.Manager()
+    #GLOBAL_FOLDER_DICT = manager.dict()
+    print("results folder gets cleared with the check_folder function, called in check_results")
+    print(" currently this isn't being called anywhere, but we can throw it somewhere")
     app.run()

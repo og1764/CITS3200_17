@@ -7,16 +7,44 @@ function copyToClipboard(element) {
   $temp.remove();
 }
 
-function httpGetAsync(theUrl, callback)
-{
-    var xmlHttp = new XMLHttpRequest();
-    xmlHttp.onreadystatechange = function() { 
-        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-			callback(xmlHttp.responseText);
-    }
-    xmlHttp.open("GET", theUrl, true); // true for asynchronous 
-    xmlHttp.send(null);
-}
+function Get_Function(url, thi) {
+	var xhttp;
+	xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			document.getElementById("output").innerHTML = xhttp.responseText;
+			//document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
+			if (status == "Example text"){
+				document.getElementById("results").innerHTML = "";
+			} else {
+				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(status,'" download><button>Download</button></a>');
+			}
+			thi.removeAllFiles()
+		}
+	};
+	xhttp.open("GET", url, true);
+	xhttp.send();
+}	
+
+Dropzone.autoDiscover = false;
+	
+var myDropzone = new Dropzone(".dropzone", {
+  //addRemoveLinks: true,
+  autoProcessQueue: false,
+  addRemoveLinks: true,
+  maxFiles: 10,
+  parallelUploads: 10,
+  uploadMultiple: true,
+  url: "/upload",
+  init: function() {
+	this.on("successmultiple", function(data, status) {
+		document.getElementById("output").innerHTML = "Loading...";
+		Get_Function('/start/'.concat(status), this);
+	});
+  },
+});
+
+// Un-used, but potentially usable functions kept below just in case.
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -27,39 +55,9 @@ function sleep(milliseconds) {
   }
 }
 
-function randomCallback(cb){
-	console.log(cb);
-}
 
-function loadDoc(url, cFunction) {
-	var xhttp;
-	xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			var splt = xhttp.responseText.split(/\r?\n/);
-			var splt_one = splt[0] + '';
-			var splt_two = splt[1] + '';
-			var splt_thr = splt[2] + '';
-			var splt_for = splt[3] + '';
-						
-			console.log(splt);
-			console.log(splt_one);
-			console.log(xhttp.responseText);
-			_state = splt_one.split(" ")[1];
-			_total = splt_two.split(" ")[1];
-			_count = splt_thr.split(" ")[1];
-			_ident = splt_for.split(" ")[1];
-			console.log(_state);
-			console.log(_total);
-			sleep(3000);
-			cFunction(this, [_state, _total, _count, _ident]);
-		}
-	};
-	xhttp.open("GET", url, true);
-	xhttp.send();
-}
-
-function Get_Progress(xhttp, values) {
+// This was part of an attempt at a progress bar
+function Get_Progress(values) {
 	if (values[1] != values[2]){
 		console.log(values);
 		move(values[1], values[2])
@@ -71,35 +69,8 @@ function Get_Progress(xhttp, values) {
 	}
 }
 
-function Get_Results(url) {
-	var xhttpTWO;
-	xhttpTWO = new XMLHttpRequest();
-	xhttpTWO.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
-			document.getElementById("output").innerHTML = xhttpTWO.responseText;
-			console.log(status);
-			console.log(xhttpTWO.responseText);
-		}
-	};
-	xhttpTWO.open("GET", url, true);
-	xhttpTWO.setRequestHeader('x-customtoken', '0');
-	xhttpTWO.send();
-}
 
-function Download_File() {
-	var xhttp;
-	xhttp = new XMLHttpRequest();
-	xhttp.setRequestHeader('x-customtoken', '1');
-	xhttp.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
-		}
-	};
-	xhttp.open("GET", url, true);
-	xhttp.send();
-}
-
+// This was an attempt at a progress bar
 function move(total, completed) {
 	console.log("MOVE");
 	var elem = document.getElementById("myBar");
@@ -120,73 +91,3 @@ function move(total, completed) {
 		}
 	}
 }	
-
-
-
-function Get_Function(url, thi) {
-	var xhttp;
-	xhttp = new XMLHttpRequest();
-	xhttp.onreadystatechange = function() {
-		if (this.readyState == 4 && this.status == 200) {
-			document.getElementById("output").innerHTML = xhttp.responseText;
-			//document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
-			document.getElementById("results").innerHTML = '<button class="mb-5" id="DownloadResults" onclick="getFiles('.concat(status, '">Download!</button>');
-			thi.removeAllFiles()
-		}
-	};
-	xhttp.open("GET", url, true);
-	xhttp.send();
-}
-
-
-
-
-
-Dropzone.autoDiscover = false;
-	
-var myDropzone = new Dropzone(".dropzone", {
-  //addRemoveLinks: true,
-  autoProcessQueue: false,
-  addRemoveLinks: true,
-  maxFiles: 10,
-  parallelUploads: 10,
-  uploadMultiple: true,
-  url: "/upload",
-  init: function() {
-	this.on("successmultiple", function(data, status) {
-		//processFiles();
-		//var prefix = '/progress/';
-		//@app.route('/progress/<token>', methods=["GET"])
-		//var _state = "";
-		//var _total = 0;
-		//var _count = 0;
-		//var _ident = "";
-		//console.log(document.getElementById("myBar"));
-		//console.log(document.getElementById("myProgress"));
-		//document.getElementById("output").innerHTML = "<div id='myProgress'><div id='myBar'></div></div>";
-		//httpGetAsync('/start/'.concat(status), randomCallback);
-		//sleep(5000);
-		//loadDoc('/progress/'.concat(status), Get_Progress);
-		
-		
-		document.getElementById("output").innerHTML = "Loading...";
-		Get_Function('/start/'.concat(status), this);
-		
-		// document.getElementById("output").innerHTML = "Loading...";
-		
-		// GET('/start/'.concat(status), callback, this)
-		
-		// Set results values
-		
-		// If results values not Example Text:
-			// update the href URL
-			// document.getElementById("results").innerHTML = '<button class="mb-5" id="DownloadResults" onclick="getFiles('.concat(status).concat('">Download!</button>';
-		
-		// do this inside the GET function
-		//this.removeAllFiles()
-	});
-  },
-});
-
-//var el = document.getElementById("classify");
-//el.addEventListener("click", removeFunction);

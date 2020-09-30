@@ -68,6 +68,7 @@ def manual():
 
 # Compressed_list = list of filepaths
 def process_compressed(compressed_list):
+    # jank rebase 
     folder_list = []
     for file in compressed_list:
         if file.endswith((".tar", ".tar.gz")):

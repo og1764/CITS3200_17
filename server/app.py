@@ -37,7 +37,7 @@ from wtforms.validators import DataRequired, ValidationError
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar")  # TODO: Add 7z, Add rar,
-#GLOBAL_FOLDER_DICT = {}
+GLOBAL_FOLDER_DICT = {}
 # tuple so it can be used with .endswith
 
 app = Flask(__name__)

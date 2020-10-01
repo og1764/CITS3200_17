@@ -103,6 +103,7 @@ def files_in_folder(target):
 # files = array of images
 def normalise_images(files, target):
     # classifies all files, gives an error if not a valid image type.
+    image_values = []`
     for file in files:
         #name = " " + file.split(sh)[-1]
         name = file.replace(target, "")

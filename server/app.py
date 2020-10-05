@@ -335,11 +335,11 @@ def CNN(lines, loaded_model, number):
         out_str = '  i=' + str(i) + '  \nG-type=' + str(y_type) + '  P=' + str(prob)
         formatted_prob = prob * 100
         if y_type == 0:
-            return_values.append("E - {0:.2f}% -".format(formatted_prob))
+            return_values.append("E - {0:.2f}% - ".format(formatted_prob))
         if y_type == 1:
-            return_values.append("S0 - {0:.2f}% -".format(formatted_prob))
+            return_values.append("S0 - {0:.2f}% - ".format(formatted_prob))
         if y_type == 2:
-            return_values.append("Sp - {0:.2f}% -".format(formatted_prob))
+            return_values.append("Sp - {0:.2f}% - ".format(formatted_prob))
     return return_values
 
 # token = Identifier
@@ -559,8 +559,9 @@ def upload():
     return rand_identifier, 202
 
 
-@app.route('/start/<token>', methods=["GET"])
-def start_processing(token):
+@app.route('/start', methods=["GET"])
+def start_processing():
+    token = request.headers.get("TOKEN")
     return process_images(GLOBAL_FOLDER_DICT[token][2], GLOBAL_FOLDER_DICT)
 
 

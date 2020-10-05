@@ -10,8 +10,6 @@ function copyToClipboard(element) {
 function Get_Function(url, thi, token) {
 	var xhttp;
 	xhttp = new XMLHttpRequest();
-	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
-	xhttp.setRequestHeader("TOKEN", token);
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			document.getElementById("output").innerHTML = xhttp.responseText;
@@ -26,6 +24,8 @@ function Get_Function(url, thi, token) {
 		}
 	};
 	xhttp.open("GET", url, true);
+	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
+	xhttp.setRequestHeader("TOKEN", token);
 	xhttp.send();
 }	
 

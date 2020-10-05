@@ -556,7 +556,7 @@ def upload():
     print(rand_identifier)
 
     # 202 Accepted
-    return rand_identifier, 202
+    return (rand_identifier, 202)
 
 
 @app.route('/start', methods=["GET"])

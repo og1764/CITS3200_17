@@ -7,9 +7,11 @@ function copyToClipboard(element) {
   $temp.remove();
 }
 
-function Get_Function(url, thi) {
+function Get_Function(url, thi, token) {
 	var xhttp;
 	xhttp = new XMLHttpRequest();
+	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
+	xhttp.setRequestHeader("TOKEN", token);
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			document.getElementById("output").innerHTML = xhttp.responseText;
@@ -17,6 +19,7 @@ function Get_Function(url, thi) {
 			if (status == "Example text"){
 				document.getElementById("results").innerHTML = "";
 			} else {
+				// might have to change this to calling a function if it still doesnt like the URL
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(status,'" download><button>Download</button></a>');
 			}
 			thi.removeAllFiles()
@@ -39,7 +42,7 @@ var myDropzone = new Dropzone(".dropzone", {
   init: function() {
 	this.on("successmultiple", function(data, status) {
 		document.getElementById("output").innerHTML = "Loading...";
-		Get_Function('/start/'.concat(status), this);
+		Get_Function('/start', this, status);
 	});
   },
 });
@@ -65,6 +68,7 @@ function Get_Progress(values) {
 		loadDoc('/progress/'.concat(values[3]), Get_Progress);
 	} else {
 		move(values[1], values[1])
+		// change this to move the token into the header
 		Get_Results('/results/'.concat(values[3]));
 	}
 }

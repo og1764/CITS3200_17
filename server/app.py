@@ -37,7 +37,7 @@ from wtforms.validators import DataRequired, ValidationError
 
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar")  # TODO: Add 7z, Add rar,
-#GLOBAL_FOLDER_DICT = {}
+GLOBAL_FOLDER_DICT = {}
 # tuple so it can be used with .endswith
 
 app = Flask(__name__)
@@ -103,6 +103,7 @@ def files_in_folder(target):
 # files = array of images
 def normalise_images(files, target):
     # classifies all files, gives an error if not a valid image type.
+    image_values = []
     for file in files:
         #name = " " + file.split(sh)[-1]
         name = file.replace(target, "")
@@ -334,11 +335,11 @@ def CNN(lines, loaded_model, number):
         out_str = '  i=' + str(i) + '  \nG-type=' + str(y_type) + '  P=' + str(prob)
         formatted_prob = prob * 100
         if y_type == 0:
-            return_values.append("E - {0:.2f}% -".format(formatted_prob))
+            return_values.append("E - {0:.2f}% - ".format(formatted_prob))
         if y_type == 1:
-            return_values.append("S0 - {0:.2f}% -".format(formatted_prob))
+            return_values.append("S0 - {0:.2f}% - ".format(formatted_prob))
         if y_type == 2:
-            return_values.append("Sp - {0:.2f}% -".format(formatted_prob))
+            return_values.append("Sp - {0:.2f}% - ".format(formatted_prob))
     return return_values
 
 # token = Identifier
@@ -558,8 +559,9 @@ def upload():
     return rand_identifier, 202
 
 
-@app.route('/start/<token>', methods=["GET"])
-def start_processing(token):
+@app.route('/start', methods=["GET"])
+def start_processing():
+    token = request.headers.get("TOKEN")
     return process_images(GLOBAL_FOLDER_DICT[token][2], GLOBAL_FOLDER_DICT)
 
 

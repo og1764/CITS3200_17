@@ -19,7 +19,7 @@ function Get_Function(url, thi, token, count) {
 				document.getElementById("results").innerHTML = "";
 			} else {
 				// might have to change this to calling a function if it still doesnt like the URL
-				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(status,'" download><button>Download</button></a>');
+				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 			}
 			thi.removeAllFiles()
 		} else if (this.readyState == 4 && this.status == 500 && counter < 6) {

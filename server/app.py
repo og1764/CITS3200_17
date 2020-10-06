@@ -195,15 +195,30 @@ def format_results(ID, results, GLOBAL_FOLDER_DICT):
         #print(i[14::])
         file_name = i[14::]
         left = file_name.split(sh)
-        if len(left) > 1 and left[0] not in folders:
-            if left[0].endswith(".zip") or left[0].endswith(".tar.gz"):
-                folders[left[0]] = i + "\r\n"
+        print(left[0])
+        #if len(left) > 1 and left[0] not in folders:
+        #    if left[0].endswith(".zip") or left[0].endswith(".tar.gz"):
+        #        folders[left[0]] = i + "\r\n"
+        #    else:
+        #        init = folders["orphaned"]
+        #        folders["orphaned"] = init + i + "\r\n"
+        #else:
+        #    #init = folders[left[0]]
+        #    folders[left[0]] = init + i + "\r\n"
+            
+        if len(left) > 1:
+            if left[0] not in folders:
+                if left[0].endswith(".zip") or left[0].endswith(".tar.gz"):
+                    folders[left[0]] = i + "\r\n"
+                else:
+                    print(left)
+                    print("You shouldn't be here")
             else:
+                init = folders[left[0]]
+                folders[left[0]] = init + i + "\r\n"
+        else:
                 init = folders["orphaned"]
                 folders["orphaned"] = init + i + "\r\n"
-        else:
-            init = folders[left[0]]
-            folders[left[0]] = init + i + "\r\n"
         print(left)
         print(i)
     print(folders)
@@ -409,24 +424,30 @@ def check_folder():
     now = time.time()
     for r in os.listdir(results_folder):
         r_path = os.path.join(results_folder, r)
-        if os.stat(r_path).st_mtime > now - res_LIFETIME:
+        if os.stat(r_path).st_mtime < now - res_LIFETIME:
             if os.path.isdir(r_path):
             #if os.path.isdir(r_path, ignore_errors=True):
                 shutil.rmtree(r_path)
         else:
-            print("{}: {} < {}".format(r_path, os.stat(r_path).st_mtime, now-res_LIFETIME))
+            print("{}: {} > {}".format(r_path, os.stat(r_path).st_mtime, now-res_LIFETIME))
     
     # loops over uploads folder and removes folders over (zip_LIFETIME) old. [default 1 week]
-    now = time.time()
-    for u in os.listdir(uploads_folder):
-        u_path = os.path.join(uploads_folder, u)
-        if os.stat(u_path).st_mtime > now - upl_LIFETIME:
-            if os.path.isdir(u_path):
-            #if os.path.isdir(u_path, ignore_errors=True):
-                shutil.rmtree(u_path)
-                 print("{}: {} > {}".format(u_path, os.stat(u_path).st_mtime, now-upl_LIFETIME))
-        else:
-            print("{}: {} < {}".format(u_path, os.stat(u_path).st_mtime, now-upl_LIFETIME))
+    try:
+        now = time.time()
+        for u in os.listdir(uploads_folder):
+            u_path = os.path.join(uploads_folder, u)
+            u_create = os.stat(u_path).st_mtime
+            if u_create < now - upl_LIFETIME:
+                if os.path.isdir(u_path):
+                #if os.path.isdir(u_path, ignore_errors=True):
+                    ##shutil.rmtree(u_path)
+                    print(u_path)
+                    print("WAS DELETED")
+                    #print("{}: {} < {}".format(u_path, u_create, now-upl_LIFETIME))
+            else:
+                print("{}: {} > {}".format(u_path, u_create, now-upl_LIFETIME))
+    except:
+        print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
 
 
 

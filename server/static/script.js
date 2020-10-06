@@ -7,11 +7,10 @@ function copyToClipboard(element) {
   $temp.remove();
 }
 
-function Get_Function(url, thi, token) {
+function Get_Function(url, thi, token, count) {
 	var xhttp;
+	var counter = count + 1;
 	xhttp = new XMLHttpRequest();
-	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
-	xhttp.setRequestHeader("TOKEN", token);
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			document.getElementById("output").innerHTML = xhttp.responseText;
@@ -20,12 +19,20 @@ function Get_Function(url, thi, token) {
 				document.getElementById("results").innerHTML = "";
 			} else {
 				// might have to change this to calling a function if it still doesnt like the URL
-				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(status,'" download><button>Download</button></a>');
+				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 			}
 			thi.removeAllFiles()
+		} else if (this.readyState == 4 && this.status == 500 && counter < 6) {
+			// wait 1 second
+			sleep(1000);
+			Get_Function(url, thi, token, counter);
+		} else if (counter == 6) {
+			document.getElementById("output").innerHTML = "ERROR!! Please upload and classify again"
 		}
 	};
 	xhttp.open("GET", url, true);
+	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
+	xhttp.setRequestHeader("TOKEN", token);
 	xhttp.send();
 }	
 
@@ -42,7 +49,7 @@ var myDropzone = new Dropzone(".dropzone", {
   init: function() {
 	this.on("successmultiple", function(data, status) {
 		document.getElementById("output").innerHTML = "Loading...";
-		Get_Function('/start', this, status);
+		Get_Function('/start', this, status, 0);
 	});
   },
 });

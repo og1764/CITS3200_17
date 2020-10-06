@@ -39,8 +39,8 @@ from wtforms.validators import DataRequired, ValidationError
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar")  # TODO: Add 7z, Add rar,
 GLOBAL_FOLDER_DICT = {}
-#upl_LIFETIME = 1 * 24 * 60 * 60 # Number of seconds folders in the RESULTS folder will remain on the server. 1 day * 24 hours * 60 minutes * 60 seconds
-upl_LIFETIME = 60
+upl_LIFETIME = 1 * 24 * 60 * 60 # Number of seconds folders in the RESULTS folder will remain on the server. 1 day * 24 hours * 60 minutes * 60 seconds
+#upl_LIFETIME = 60
 res_LIFETIME = 7 * 24 * 60 * 60 # Number of seconds folders in the UPLOADS folder will remain on the server.
 # tuple so it can be used with .endswith
 
@@ -503,14 +503,16 @@ def main():
 def returnFile(token):
     print("We're here!")
     left_path = str(APP_ROOT) + sh + "results" + sh + token + sh
-    files = [f for f in os.listdir(left_path) if os.path.isfile(f)]
+    files = [f for f in os.listdir(left_path)]
     print(files)
     output_files = [i for i in files if i not in ['progress.txt', 'results.txt']]
+    print("?")
+    print(output_files)
     if len(output_files) > 0 and output_files != ["images.txt"]:
         memory_file = io.BytesIO()
         with zipfile.ZipFile(memory_file, 'w') as zf:
             for i in output_files:
-                zf.write(i)
+                zf.write(left_path + i, i)
             #zf.write(left_path+output_files[0])
         memory_file.seek(0)   
         toReturn = Response(

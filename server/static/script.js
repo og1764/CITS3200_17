@@ -26,6 +26,8 @@ function Get_Function(url, thi, token, count) {
 			// wait 1 second
 			sleep(1000);
 			Get_Function(url, thi, token, counter);
+		} else if (counter == 6) {
+			document.getElementById("output").innerHTML = "ERROR!! Please upload and classify again"
 		}
 	};
 	xhttp.open("GET", url, true);

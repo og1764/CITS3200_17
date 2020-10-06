@@ -1,5 +1,6 @@
 import datetime
 import glob
+import io
 import keras
 import keras.callbacks
 import numpy as np
@@ -38,6 +39,9 @@ from wtforms.validators import DataRequired, ValidationError
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar")  # TODO: Add 7z, Add rar,
 GLOBAL_FOLDER_DICT = {}
+upl_LIFETIME = 1 * 24 * 60 * 60 # Number of seconds folders in the RESULTS folder will remain on the server. 1 day * 24 hours * 60 minutes * 60 seconds
+#upl_LIFETIME = 60
+res_LIFETIME = 7 * 24 * 60 * 60 # Number of seconds folders in the UPLOADS folder will remain on the server.
 # tuple so it can be used with .endswith
 
 app = Flask(__name__)
@@ -49,7 +53,6 @@ login.login_view = 'login'
 
 sh = os.sep
 
-img_types = ['.jpg', '.png']
 # global vars for updating site background sequentially from folder of images
 bg_index = 0
 bg_set_time = 0.0
@@ -177,12 +180,68 @@ def file_cleanup(target, compressed, folders):
 # results = results from classification
 def format_results(ID, results, GLOBAL_FOLDER_DICT):
     ret = ""
-    f = open(GLOBAL_FOLDER_DICT[ID][1], "w+")
+    left_path = str(APP_ROOT) + sh + "results" + sh + ID + sh
+    # f = open(GLOBAL_FOLDER_DICT[ID][1], "w+")
     for i in results:
         for j in i:
             ret = ret + "".join(j).replace(GLOBAL_FOLDER_DICT[ID][2], "")
-    f.write(ret)
+    
+    # -----  1  2   3   4   5   6   7   8   9   10
+    zips = ["", "", "", "", "", "", "", "", "", "", ""]
+    vals = [[], [], [], [], [], [], [], [], [], [], []]
+    
+    folders = {"orphaned": ""}
+    splitted = ret.split("<br>")
+    
+    f = open(GLOBAL_FOLDER_DICT[ID][1], "w+")
+    written = ret.replace("<br>", "\r\n")
+    f.write(written)
     f.close()
+    
+    for i in splitted:
+        #print(i[14::])
+        file_name = i[14::]
+        left = file_name.split(sh)
+        print(left[0])
+        #if len(left) > 1 and left[0] not in folders:
+        #    if left[0].endswith(".zip") or left[0].endswith(".tar.gz"):
+        #        folders[left[0]] = i + "\r\n"
+        #    else:
+        #        init = folders["orphaned"]
+        #        folders["orphaned"] = init + i + "\r\n"
+        #else:
+        #    #init = folders[left[0]]
+        #    folders[left[0]] = init + i + "\r\n"
+            
+        if len(left) > 1:
+            if left[0] not in folders:
+                if left[0].endswith(".zip") or left[0].endswith(".tar.gz"):
+                    folders[left[0]] = i + "\r\n"
+                else:
+                    print(left)
+                    print("You shouldn't be here")
+            else:
+                init = folders[left[0]]
+                folders[left[0]] = init + i + "\r\n"
+        else:
+                init = folders["orphaned"]
+                folders["orphaned"] = init + i + "\r\n"
+        print(left)
+        print(i)
+    print(folders)
+    
+    keys = folders.keys()
+    if keys != ["orphaned"]:
+        for key in keys:
+            if key != "orphaned":
+                new_file_name = left_path+key+".txt"
+            else:
+                new_file_name = left_path+"images.txt"
+            f = open(new_file_name, "w+")
+            text = folders[key].replace("<br>", "\r\n")
+            f.write(text)
+            f.close()
+
     if ret == "":
         ret = "Example text"
     return ret
@@ -370,51 +429,44 @@ def CNN(lines, loaded_model, number):
     return return_values
 
 # token = Identifier
-def check_folder(token, GLOBAL_FOLDER_DICT):
+def check_folder():
     # Checks all folders in the global dict to see if expired
     # If any are expired, it removes them
     # return value is specific to input value
     # Do this... somewhere. On Get request for file?
 
-    keys = list(GLOBAL_FOLDER_DICT.keys())
-    expired = False
-    for tkn in keys:
-        try:
-            best_before = GLOBAL_FOLDER_DICT[tkn][4]
-            time_now = datetime.datetime.now(timezone.utc)
-            prog = GLOBAL_FOLDER_DICT[tkn][0]
-            res = GLOBAL_FOLDER_DICT[tkn][1]
-            img = GLOBAL_FOLDER_DICT[tkn][2]
-            txt = GLOBAL_FOLDER_DICT[tkn][3]
-            if time_now > best_before:
-                try:
-                    # remove all of everything. If it errors it will still be marked as expired and will be dealt with later
-                    if prog != "":
-                        os.remove(prog)
-                        prog = ""
-                        GLOBAL_FOLDER_DICT[tkn] = ["", res, img, txt, best_before]
-                    if res != "":
-                        os.remove(res)
-                        res = ""
-                        GLOBAL_FOLDER_DICT[tkn] = [prog, "", img, txt, best_before]
-                    if img != "":
-                        shutil.rmtree(img)
-                        img = ""
-                        GLOBAL_FOLDER_DICT[tkn] = [prog, res, "", txt, best_before]
-                    if txt != "":
-                        shutil.rmtree(txt)
-                        txt = ""
-                        GLOBAL_FOLDER_DICT[tkn] = [prog, res, img, "", best_before]
-                    GLOBAL_FOLDER_DICT.pop(tkn)
-                    if tkn == token:
-                        expired = True
-                except:
-                    if tkn == token:
-                        expired = True
-        except:
-            if tkn == token:
-                expired = True
-    return expired
+    # Loop over folders in uploads and tosend as well to check? Maybe thats a better idea.
+    
+    results_folder = str(APP_ROOT) + sh + "results" + sh
+    uploads_folder = str(APP_ROOT) + sh + "uploads" + sh
+    now = time.time()
+    for r in os.listdir(results_folder):
+        r_path = os.path.join(results_folder, r)
+        if os.stat(r_path).st_mtime < now - res_LIFETIME:
+            if os.path.isdir(r_path):
+            #if os.path.isdir(r_path, ignore_errors=True):
+                shutil.rmtree(r_path)
+        else:
+            print("{}: {} > {}".format(r_path, os.stat(r_path).st_mtime, now-res_LIFETIME))
+    
+    # loops over uploads folder and removes folders over (zip_LIFETIME) old. [default 1 week]
+    try:
+        now = time.time()
+        for u in os.listdir(uploads_folder):
+            u_path = os.path.join(uploads_folder, u)
+            u_create = os.stat(u_path).st_mtime
+            if u_create < now - upl_LIFETIME:
+                if os.path.isdir(u_path):
+                #if os.path.isdir(u_path, ignore_errors=True):
+                    ##shutil.rmtree(u_path)
+                    print(u_path)
+                    print("WAS DELETED")
+                    #print("{}: {} < {}".format(u_path, u_create, now-upl_LIFETIME))
+            else:
+                print("{}: {} > {}".format(u_path, u_create, now-upl_LIFETIME))
+    except:
+        print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
+
 
 
 @login.user_loader
@@ -447,17 +499,38 @@ def main():
     return render_template('main.html', title='Main')
 
 
-# This is more than a little jank. We're going to have to figure out how to use identifiers here as well
 @app.route('/getResults/<token>')
 def returnFile(token):
     print("We're here!")
-    with open(GLOBAL_FOLDER_DICT[1]) as f:
-        txt_content = f.read()
-    toReturn = Response(
-        txt_content,
-        mimetype="text/txt",
-        headers={"Content-disposition":
-                     "attachment; filename=Results.txt"})
+    left_path = str(APP_ROOT) + sh + "results" + sh + token + sh
+    files = [f for f in os.listdir(left_path)]
+    print(files)
+    output_files = [i for i in files if i not in ['progress.txt', 'results.txt']]
+    print("?")
+    print(output_files)
+    if len(output_files) > 0 and output_files != ["images.txt"]:
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w') as zf:
+            for i in output_files:
+                zf.write(left_path + i, i)
+            #zf.write(left_path+output_files[0])
+        memory_file.seek(0)   
+        toReturn = Response(
+            memory_file,
+            mimetype="application/zip",
+            headers={"Content-disposition":
+                     "attachment; filename=Results.zip"})
+    else:
+        txt_content = ""
+        with open(GLOBAL_FOLDER_DICT[token][1]) as f:
+            txt_content = f.read()
+            print(GLOBAL_FOLDER_DICT[token][1])
+            print(txt_content)
+        toReturn = Response(
+            txt_content,
+            mimetype="text/txt",
+            headers={"Content-disposition":
+                         "attachment; filename=Results.txt"})
     return toReturn
 
 
@@ -576,8 +649,9 @@ def upload():
         file.save(destination)
 
     time_now = datetime.datetime.now(datetime.timezone.utc)
-    LIFETIME = datetime.timedelta(days=1)
-    expiry = time_now + LIFETIME
+    #LIFETIME = datetime.timedelta(days=1)
+    dt_LIFETIME = datetime.timedelta(minutes=1)
+    expiry = time_now + dt_LIFETIME
 
     GLOBAL_FOLDER_DICT[rand_identifier] = [rand_progress, rand_results, up_target, res_target, expiry]
     print(rand_identifier)
@@ -589,6 +663,8 @@ def upload():
 @app.route('/start', methods=["GET"])
 def start_processing():
     token = request.headers.get("TOKEN")
+    check_folder()
+    #print(testing)
     return process_images(GLOBAL_FOLDER_DICT[token][2], GLOBAL_FOLDER_DICT)
 
 

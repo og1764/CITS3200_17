@@ -1,5 +1,6 @@
 import datetime
 import glob
+import io
 import keras
 import keras.callbacks
 import numpy as np
@@ -179,6 +180,7 @@ def file_cleanup(target, compressed, folders):
 # results = results from classification
 def format_results(ID, results, GLOBAL_FOLDER_DICT):
     ret = ""
+    left_path = str(APP_ROOT) + sh + "results" + sh + ID + sh
     # f = open(GLOBAL_FOLDER_DICT[ID][1], "w+")
     for i in results:
         for j in i:
@@ -189,8 +191,13 @@ def format_results(ID, results, GLOBAL_FOLDER_DICT):
     vals = [[], [], [], [], [], [], [], [], [], [], []]
     
     folders = {"orphaned": ""}
-    
     splitted = ret.split("<br>")
+    
+    f = open(GLOBAL_FOLDER_DICT[ID][1], "w+")
+    written = ret.replace("<br>", "\r\n")
+    f.write(written)
+    f.close()
+    
     for i in splitted:
         #print(i[14::])
         file_name = i[14::]
@@ -222,8 +229,19 @@ def format_results(ID, results, GLOBAL_FOLDER_DICT):
         print(left)
         print(i)
     print(folders)
-    #f.write(ret)
-    #f.close()
+    
+    keys = folders.keys()
+    if keys != ["orphaned"]:
+        for key in keys:
+            if key != "orphaned":
+                new_file_name = left_path+key+".txt"
+            else:
+                new_file_name = left_path+"images.txt"
+            f = open(new_file_name, "w+")
+            text = folders[key].replace("<br>", "\r\n")
+            f.write(text)
+            f.close()
+
     if ret == "":
         ret = "Example text"
     return ret
@@ -481,17 +499,36 @@ def main():
     return render_template('main.html', title='Main')
 
 
-# This is more than a little jank. We're going to have to figure out how to use identifiers here as well
 @app.route('/getResults/<token>')
 def returnFile(token):
     print("We're here!")
-    with open(GLOBAL_FOLDER_DICT[1]) as f:
-        txt_content = f.read()
-    toReturn = Response(
-        txt_content,
-        mimetype="text/txt",
-        headers={"Content-disposition":
-                     "attachment; filename=Results.txt"})
+    left_path = str(APP_ROOT) + sh + "results" + sh + token + sh
+    files = [f for f in os.listdir(left_path) if os.path.isfile(f)]
+    print(files)
+    output_files = [i for i in files if i not in ['progress.txt', 'results.txt']]
+    if len(output_files) > 0 and output_files != ["images.txt"]:
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w') as zf:
+            for i in output_files:
+                zf.write(i)
+            #zf.write(left_path+output_files[0])
+        memory_file.seek(0)   
+        toReturn = Response(
+            memory_file,
+            mimetype="application/zip",
+            headers={"Content-disposition":
+                     "attachment; filename=Results.zip"})
+    else:
+        txt_content = ""
+        with open(GLOBAL_FOLDER_DICT[token][1]) as f:
+            txt_content = f.read()
+            print(GLOBAL_FOLDER_DICT[token][1])
+            print(txt_content)
+        toReturn = Response(
+            txt_content,
+            mimetype="text/txt",
+            headers={"Content-disposition":
+                         "attachment; filename=Results.txt"})
     return toReturn
 
 

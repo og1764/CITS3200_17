@@ -249,8 +249,10 @@ def choose_new_background(mode='latest', interval=0):  # mode latest|sequence, i
                 bg_location = bg_dir_location + latest_file[1]
                 print(latest_file)
                 shutil.copy2(bg_location, bg_destination)
+                centercrop()
             except:
-                print("No images found in " + bg_dir_location)
+                print("Setting background from backgrounds folder (latest) failed")
+                default_bg()
 
         elif mode == 'sequence':
             try:
@@ -260,13 +262,38 @@ def choose_new_background(mode='latest', interval=0):  # mode latest|sequence, i
                 bg_location = bg_dir_location + next_file[1]
                 print(next_file)
                 shutil.copy2(bg_location, bg_destination)
-
+                centercrop()
             except:
-                print("No images found in " + bg_dir_location)
+                print("Setting background from backgrounds folder (sequence) failed")
+                default_bg()
 
         # record the time at which the background updates were run
         bg_set_time = time.time()
 
+def default_bg():
+    try: 
+        default_bg = str(APP_ROOT) + sh + "static" + sh + "img" + sh + "background_default.jpg"
+        bg_destination = str(APP_ROOT) + sh + "static" + sh + "img" + sh + "background.jpg"
+        shutil.copy2(default_bg, bg_destination)
+    except:
+        print("Failed to use default background")
+
+def centercrop():
+    try: 
+        location = str(APP_ROOT) + sh + "static" + sh + "img" + sh + "background.jpg"
+        im = Image.open(location)
+        width, height = im.size   # Get dimensions
+
+        left = 0
+        right = width
+        top = height/3
+        bottom = 2*height/3
+
+        # Crop the image
+        im = im.crop((left, top, right, bottom))
+        im.save(location)
+    except:
+        print("image crop failed")
 
 def files_sorted_by_date(dir_path):
     # all entries in the directory w/ stats

@@ -12,7 +12,7 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-sm">
+  <nav class="navbar navbar-expand">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item active">
         <a class="nav-link" href="{{ url_for('main') }}">Tool</a>
@@ -38,12 +38,11 @@
             <label for="task">Select Task:</label>
             <select id="task" class="form-control">
               <option value="shape">Shape</option>
-              <option value="bar">Bar Fraction</option>
             </select>
           </div>
         </form>
         <form action="/upload" class="dropzone" id="my-dropzone">
-          <div class="dz-message">Drag and drop an image here, or click to upload.</div>
+          <div class="dz-message">Drag and drop your file(s) here, or click to browse files on your device.</div>
         </form>
         <br>
         <button class="mb-5" id="classify" onclick="Dropzone.forElement('.dropzone').processQueue()">Upload and Classify!</button>

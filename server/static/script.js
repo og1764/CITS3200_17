@@ -27,12 +27,12 @@ function Get_Function(url, thi, token) {
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
 	xhttp.setRequestHeader("TOKEN", token);
 	xhttp.send();
-}	
+}
 
 Dropzone.autoDiscover = false;
-	
+
 var myDropzone = new Dropzone(".dropzone", {
-  //addRemoveLinks: true,
+  acceptedFiles: ".jpg,.jpeg,.png,.gif,.zip,.tar,.tar.gz",
   autoProcessQueue: false,
   addRemoveLinks: true,
   maxFiles: 10,
@@ -94,4 +94,4 @@ function move(total, completed) {
 			elem.style.width = compl_ + "%";
 		}
 	}
-}	
+}

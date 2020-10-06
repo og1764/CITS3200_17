@@ -9,7 +9,7 @@
 </head>
 
 <body>
-  <nav class="navbar navbar-expand-sm">
+  <nav class="navbar navbar-expand">
     <ul class="navbar-nav mr-auto">
       <li class="nav-item">
         <a class="nav-link" href="{{ url_for('main') }}">Tool</a>
@@ -25,22 +25,21 @@
     </ul>
   </nav>
   <div class="jumbotron text-center">
-    <h1>Galaxy Classification Tool</h1>
+    <h1>User Manual</h1>
   </div>
   <div class="container-fluid">
     <div class="row justify-content-center">
-      <div class="col-md-6">
-        <h1>User manual</h1>
-        <h3>Getting In</h3>
-        <p>To use the website as a regular user it is relatively simple, load up the webpage and enter the password that can be obtained through Kenji (the owner) either in person or by the email address provided (note that this password is subject to change as the owner sees fit). </p>
-        <h3>Using Classifier</h3>
-        <p>Once you have entered the password you are onto the main webpage. From here there is a drop-down menu of classification types, click here and select the type of classification you would like to use. </p>
-        <p>Drag and drop your images into the box provided or by clicking inside the box a menu pops up allowing you to select the files you wish to upload (within the limit), if you upload the wrong image then beneath the image when its uploaded there is a remove button to get rid of the image. You can only upload images that are in the formats listed and can only upload compressed files of the formats listed. </p>
-        <p>Now you just click the “Classify!” button to get the result. If multiple images are uploaded then there will be multiple results provided, if there are more than 10 then a text file can be downloaded where each line contains the results of the respective galaxy. Press the “Copy results to clipboard” button to save the output to your clipboard.</p>
-
+      <div class="col-md-6 mb-5">
+        <h3>Using the Classifier</h3>
+        <p>From the drop-down menu of classification types, select the type of classification you would like to use.</p>
+        <p>Drag and drop your files into the box provided, or click the box to browse your device for the files.
+        <b>Accepted file types are: .jpg, .jpeg, .png, .gif, .zip, .tar, .tar.gz.</b> The box only accepts up to 10 files,
+        but you can use one of the compressed file types to upload more than 10 images/files. If you upload a wrong file,
+        simply click the "Remove file" link underneath to remove it.</p>
+        <p>Now, just click the “Upload and Classify!” button to get the result. To easily copy the output, simply click the
+        “Copy results to clipboard” button.</p>
       </div>
     </div>
   </div>
-  <script src="../static/script.js"></script>
 </body>
 </html>

@@ -7,8 +7,9 @@ function copyToClipboard(element) {
   $temp.remove();
 }
 
-function Get_Function(url, thi, token) {
+function Get_Function(url, thi, token, count) {
 	var xhttp;
+	var counter = count + 1;
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
@@ -21,6 +22,10 @@ function Get_Function(url, thi, token) {
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(status,'" download><button>Download</button></a>');
 			}
 			thi.removeAllFiles()
+		} else if (this.readyState == 4 && this.status == 500 && counter < 6) {
+			// wait 1 second
+			sleep(1000);
+			Get_Function(url, thi, token, counter);
 		}
 	};
 	xhttp.open("GET", url, true);
@@ -42,7 +47,7 @@ var myDropzone = new Dropzone(".dropzone", {
   init: function() {
 	this.on("successmultiple", function(data, status) {
 		document.getElementById("output").innerHTML = "Loading...";
-		Get_Function('/start', this, status);
+		Get_Function('/start', this, status, 0);
 	});
   },
 });

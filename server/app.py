@@ -370,12 +370,9 @@ def files_sorted_by_date(dir_path):
     return file_list
 
 
-def CNN(lines, loaded_model, number):
-    """ Takes an array of values """
-    print(number)
-
+def CNN(lines, loaded_model):
+    # Initialising Variables
     num_classes = 3
-    # num_classes0 = 2 Not sure why this is here
     n_mesh = 50
     i_bin = 0
     j_bin = -1
@@ -386,13 +383,13 @@ def CNN(lines, loaded_model, number):
     n_mesh2 = n_mesh * n_mesh - 1
     n_mesh3 = n_mesh * n_mesh
 
+    # Setting up numpy arrays
     x_train = np.zeros((nmodel, n_mesh3))
     x_test = np.zeros((nmodel, n_mesh3))
     y_train = np.zeros(nmodel, dtype=np.int)
-    y_test = np.zeros(nmodel, dtype=np.int)
+    y_test = np.zeros(nmodel, dtype=np.int) 
 
     # For 2D density map data
-
     for num, j in enumerate(lines):
         j_bin = j_bin + 1
         tm = j
@@ -403,8 +400,6 @@ def CNN(lines, loaded_model, number):
             j_bin = -1
 
     ntest = i_bin
-
-    print('ntest', ntest)
 
     x_train = x_train.reshape(x_train.shape[0], img_rows, img_cols, 1)
     x_test = x_test.reshape(x_test.shape[0], img_rows, img_cols, 1)
@@ -417,15 +412,18 @@ def CNN(lines, loaded_model, number):
             y_vec[j] = y_pred[i, j]
         y_type = np.argmax(y_vec)
         prob = y_vec[y_type]
-
-        out_str = '  i=' + str(i) + '  \nG-type=' + str(y_type) + '  P=' + str(prob)
-        formatted_prob = prob * 100
+        
+        # Our value for y type defines the type of galaxy we are getting, and in all instances we provide the probability
+        galaxy_type = ""
         if y_type == 0:
-            return_values.append("E - {0:.2f}% - ".format(formatted_prob))
+            galaxy_type = "E"
         if y_type == 1:
-            return_values.append("S0 - {0:.2f}% - ".format(formatted_prob))
+            galaxy_type = "S0"
         if y_type == 2:
-            return_values.append("Sp - {0:.2f}% - ".format(formatted_prob))
+            galaxy_type = "Sp"
+        
+        return_values.append("{0}, {1:.2f}%, ".format(galaxy_type, prob*100))
+
     return return_values
 
 # token = Identifier

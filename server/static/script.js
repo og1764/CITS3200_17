@@ -72,6 +72,7 @@ function Get_Progress(values) {
 		console.log(values);
 		move(values[1], values[2])
 		sleep(3000);
+		// Progress is not a valid URL currently. See previous versions (#45) to retrieve
 		loadDoc('/progress/'.concat(values[3]), Get_Progress);
 	} else {
 		move(values[1], values[1])

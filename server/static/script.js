@@ -10,15 +10,16 @@ function copyToClipboard(element) {
 function Get_Function(url, thi, token, count) {
 	var xhttp;
 	var counter = count + 1;
+	var index = document.getElementById("task").selectedIndex;
+	var opt = document.getElementById("task").options;
+	var network = opt[index].text
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			document.getElementById("output").innerHTML = xhttp.responseText;
-			//document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
 			if (status == "Example text"){
 				document.getElementById("results").innerHTML = "";
 			} else {
-				// might have to change this to calling a function if it still doesnt like the URL
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 			}
 			thi.removeAllFiles()
@@ -33,6 +34,7 @@ function Get_Function(url, thi, token, count) {
 	xhttp.open("GET", url, true);
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
 	xhttp.setRequestHeader("TOKEN", token);
+	// xhttp.setRequestHeader("NETWORK", network);
 	xhttp.send();
 }
 

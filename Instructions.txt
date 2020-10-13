@@ -1,0 +1,93 @@
+Client Instructions
+
+How the website works wholistically:
+	Website is built based on the HTML, CSS, and JavaScript in the static folder.
+	(
+		Areas of the website that I havent written needs to be summarised by others
+	)
+	The user interacts with a DropZone element (JavaScript) that uploads the file on the click of a button.
+	The upload is done through a POST request to the server (URL is /upload)
+	/upload is linked to the upload() function, which does a series of actions:
+		It creates folders on the server if they don't already exist.
+		It creates a unique 12 character identifier (TOKEN) that is used to keep track of a users files
+		It creates folders called TOKEN on the server, and the files that were uploaded are saved to that location
+		It returns TOKEN to the webpage.
+	Immediately after the TOKEN is received, it changes the contents of the results area to "Loading..."
+	It then sends a GET request to the server to ask the server to start classifying the images (URL is /start), with the TOKEN in a header
+	/start is linked to the start_processing() function which does a series of actions:
+		It checks all files that have been previously downloaded, and removes files that have been on the server for a significant period of time
+			This is so that data isn't being needlessly stored on the server
+		It then calls the process_images function, which is the bulk of the webpage.
+	
+	process_images(target) is effectively the main method if the code were to be run offline.
+		Target is the location of the uploaded images.
+		Firstly, it creates a list of compressed folders, and then extracts them.
+		It then loops over all of the uploads folder and puts the path of each file in a list so they can be easily processed.
+		
+	
+	
+	
+	
+	
+	
+	
+	
+What the client needs to change to add other functionality:
+	
+	normalise_images(files, target)
+		This function takes in an array of files and the base file path, server\uploads\TOKEN\
+		It processes each file. If it's an image, it normalises the image such that the image is in black and white and the pixel values are between 0 and 1.
+		It returns an array of tuples, where the first element is the array of normalised pixel values, and the second element is the name of the file.
+		IF the file can't be processed as an image, either because its an unsupported image or not an image at all, the first element of the tuple an error message, and the second element is left as an empty string.
+
+
+	bulk_classify(files, loaded_model)
+		This function takes in the output of normalise_images, and the model that has been loaded from file for the neural network.
+			ie, you could call bulk_classify(normalise_images(files, target), loaded_model)
+		It changes the array of tuples that was output from normalise_images. 
+			For each tuple in that array, if the first element is pixel values, it classifies them and changes the first element of the tuple to that classification
+			If the first element is just the error message, then nothing changes.
+		
+
+	format_results(token, results)
+		This function takes in the output of bulk_classify, and the identifier TOKEN.
+		It generates a string of HTML that can be output on the webpage.
+		It also creates files that can be downloaded by the user, one file for images that were uploaded, and then a different file for each compressed folder that was uploaded
+			The neural network returns a string that contains 3 comma separated values ("classification, percentage, filename")
+			If a different neural network returns a string in a different format, specifically with the filename in a different position, this function will have to be changed.
+			
+
+Additional Functionality
+
+	Steps required to add another neural network:
+		Edit main.html and add an option to the "task" form-group (see example on line 40)
+		Edit app.py in the following ways:
+			Add your neural network as a function
+			
+			change the first else statement in process_images (at around line 310) to ```elif neural_network in [{}]: ``` where {} is the set of options in the task group that this applies to
+			Take out the part where you load the model from a file, and paste it into the elif
+			
+			For each if statement, you need to assess:
+				Are the functions that already exist adequate for this new function?
+				If yes:
+					Add the option from the task group into the array in the if statement, eg ```if neural_network in ["shape", "test"]:```
+				Otherwise:
+					Change the else to an elif of a similar structure to the if statement
+					Define a new function that does the same thing as the existing functions, but slightly modified for the new network
+					It is CRITICAL that the return values be in the same format as the existing functions.
+						If the return values cannot be in the same format, you will have to write functions for all subsequent if blocks.
+					
+			
+			If a significant number of neural networks are added (probably more than 3 in total), then it's suggested that you refactor process_images into multiple functions
+				One function that is suitable for each neural network.
+			
+			In addition, the following will need to be kept in mind:
+				to_send is a HTML string that will be returned to the webpage.
+				
+		
+
+
+
+
+
+

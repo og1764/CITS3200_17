@@ -1,15 +1,17 @@
 function copyToClipboard(element) {
-  var $temp = $("<textarea>");
-  var brRegex = /<br\s*[\/]?>/gi;
-  $("body").append($temp);
-  $temp.val($(element).html().replace(brRegex, "\r\n")).select();
-  document.execCommand("copy");
-  $temp.remove();
+	var $temp = $("<textarea>");
+	var brRegex = /<br\s*[\/]?>/gi;
+	$("body").append($temp);
+	$temp.val($(element).html().replace(brRegex, "\r\n")).select();
+	document.execCommand("copy");
+	$temp.remove();
 }
 
-function Get_Function(url, thi, token, count) {
+function Get_Function(url, thi, token) {
 	var xhttp;
-	var counter = count + 1;
+	var options = document.getElementById("task").options;
+	var index = document.getElementById("task").selectedIndex;
+	var network = options[index].text
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
@@ -22,17 +24,12 @@ function Get_Function(url, thi, token, count) {
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 			}
 			thi.removeAllFiles()
-		} else if (this.readyState == 4 && this.status == 500 && counter < 6) {
-			// wait 1 second
-			sleep(1000);
-			Get_Function(url, thi, token, counter);
-		} else if (counter == 6) {
-			document.getElementById("output").innerHTML = "ERROR!! Please upload and classify again"
 		}
 	};
 	xhttp.open("GET", url, true);
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
 	xhttp.setRequestHeader("TOKEN", token);
+	xhttp.setRequestHeader("NETWORK", network);
 	xhttp.send();
 }
 
@@ -49,12 +46,12 @@ var myDropzone = new Dropzone(".dropzone", {
   init: function() {
 	this.on("successmultiple", function(data, status) {
 		document.getElementById("output").innerHTML = "Loading...";
-		Get_Function('/start', this, status, 0);
+		Get_Function('/start', this, status);
 	});
   },
 });
 
-// Un-used, but potentially usable functions kept below just in case.
+// Un-used, but potentially useful functions kept below just in case.
 
 function sleep(milliseconds) {
   var start = new Date().getTime();
@@ -72,6 +69,7 @@ function Get_Progress(values) {
 		console.log(values);
 		move(values[1], values[2])
 		sleep(3000);
+		// Progress is not a valid URL currently. See previous versions (#45) to retrieve
 		loadDoc('/progress/'.concat(values[3]), Get_Progress);
 	} else {
 		move(values[1], values[1])

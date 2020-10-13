@@ -1,3 +1,10 @@
+/* Initialising all base colours for the website
+   the current style is different shades of blue
+   that are consistent across the website, this
+   can easily be adjusted but all colours should
+   be changed together to keep a consistent style. 
+*/
+
 :root {
     --main-bg: #1e4c76;
     --subsection-bg:#4C7498;
@@ -26,11 +33,13 @@
     text-decoration: underline;
 }
 
+/* Provides the updating image for all jumbotrons */
 .jumbotron {
     background-image: url('./img/background.jpg');
     background-size: cover;
 }
 
+/* Login styling */
 .login {
   width: 240px;
   height: 500px;
@@ -47,13 +56,10 @@
 .login .formInLogin .input {
   width: 100%;
   margin-bottom: 18px;
-  border: 0;
   padding: 11px 0px;
-  border-bottom: 1px solid grey;
   font-size: 16px;
   border-radius: 8px;
-  border-width: 2px;
-  border-color: var(--text-colour);
+  border: 2px dashed var(--border-colour);
   color: var(--text-colour);
   background-color: var(--subsection-bg);
 }
@@ -66,8 +72,7 @@
   margin-top: 10px;
   padding-top: 0px;
   border-radius: 8px;
-  border-width: 2px;
-  border-color: var(--text-colour);
+  border: 2px dashed var(--border-colour);
   color: var(--text-colour);
   background-color: var(--subsection-bg);
 }
@@ -78,21 +83,41 @@
   color: var(--text-colour)
 }
 
+/* To make sure that images uploaded take up the full dropzone display box */
 img {
     min-width: 120px;
     min-height: 120px;
 }
 
+/* Setting main text colour to all text */
 h1, h3, body, label, span, ::placeholder {
     color: var(--text-colour);
 }
 
+/* To place the two buttons (copy and download) next to each other */
+#results {
+    display: inline-block;
+}
+
+#copybutton {
+    margin-bottom:1rem !important;
+    display: inline-block;
+}
+
+/* This is to seperate the two buttons (copy and download) */
+.divider {
+    width: 10px; 
+    display: inline-block;
+}
+
+/* Text for the user manual, justified for nicer display */
 p {
     color: var(--text-colour);
     text-align: justify;
     text-justify: inter-word;
 }
 
+/* General styling */
 .form-control {
     background-color: var(--subsection-bg);
     border:2px dashed var(--border-colour);
@@ -109,6 +134,7 @@ body {
     background-color: var(--main-bg);
 }
 
+/* Consistent stylisation for buttons */
 button, .btn {
     border-radius: 8px;
     border-width: 2px;
@@ -117,6 +143,7 @@ button, .btn {
     background-color: var(--subsection-bg);
 }
 
+/* General styling */
 .nav-link, .btn:hover {
     color: var(--text-colour);
 }

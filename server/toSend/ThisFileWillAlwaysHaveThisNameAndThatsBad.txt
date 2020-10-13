@@ -1,5 +1,0 @@
-S0 - 99.88% -twes.zip.dir\twes\download.jpg 
-S0 - 93.45% -twes.zip.dir\twes\galaxy.jpg 
-Sp - 84.61% -twes.zip.dir\twes\heic2002a.jpg 
-Sp - 51.97% -twes.zip.dir\twes\test2\17387 - Copy.jpg 
-S0 - 99.88% -twes.zip.dir\twes\test2\download - Copy.jpg 

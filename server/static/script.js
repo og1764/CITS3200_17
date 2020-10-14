@@ -22,12 +22,6 @@ function Get_Function(url, thi, token, count) {
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 			}
 			thi.removeAllFiles()
-		} else if (this.readyState == 4 && this.status == 500 && counter < 6) {
-			// wait 1 second
-			sleep(1000);
-			Get_Function(url, thi, token, counter);
-		} else if (counter == 6) {
-			document.getElementById("output").innerHTML = "ERROR!! Please upload and classify again"
 		}
 	};
 	xhttp.open("GET", url, true);

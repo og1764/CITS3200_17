@@ -53,6 +53,8 @@ app.secret_key = 'SECRET KEY'
 login = LoginManager(app)
 login.login_view = 'login'
 
+progress = {}
+
 
 def process_compressed(compressed_list):
     """
@@ -94,15 +96,16 @@ def files_in_folder(target):
     # Iterate over all the entries
     for entry in file_list:
         # Create full path
-        path = os.path.join(target, entry)
-        if os.path.isdir(path):
-            result = result + files_in_folder(path)
-        elif not path.endswith(VALID_COMPRESSED):
-            result.append(path)
+        if not entry.startswith("._"):
+            path = os.path.join(target, entry)
+            if os.path.isdir(path):
+                result = result + files_in_folder(path)
+            elif not path.endswith(VALID_COMPRESSED):
+                result.append(path)
     return result
 
 
-def normalise_images(files, target):
+def normalise_images(files, target, token):
     """
     Takes an array of files and their base file path, and normalises the pixel value of images such that each image is
     black and white and the value of each pixel is between 0 and 1. If the file isn't an image, it adds an error message
@@ -114,6 +117,8 @@ def normalise_images(files, target):
     :type target: str
     :return array:
     """
+
+    global progress
 
     image_values = []
     for file in files:
@@ -135,11 +140,13 @@ def normalise_images(files, target):
             image_values.append((error_message, ""))
         except:
             print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
+        progress[token]['normalise'] = progress[token]['normalise'] + 1
+
         os.remove(file)
     return image_values
 
 
-def bulk_classify(files, loaded_model):
+def bulk_classify(files, loaded_model, token):
     """
     Takes an array of files and a model for the CNN, and classifies each file.
 
@@ -149,12 +156,16 @@ def bulk_classify(files, loaded_model):
     :return array:
     """
 
+    global progress
+
     return_values = []
     for i in files:
         if i[1] != "":
             return_values.append((CNN(i[0], loaded_model), i[1]))
         else:
             return_values.append((i[0], ""))
+        #append token and filename to progress tracking dictionary
+        progress[token]['classify'] = progress[token]['classify'] + 1
     return return_values
 
 
@@ -220,21 +231,22 @@ def format_results(token, results):
     f.close()
     for i in splitted:
         files = str(i).split(",")
-        file_name = files[2].strip()
-        left = file_name.split(SH)
-        if len(left) > 1:
-            if left[0] not in folders:
-                if left[0].endswith(VALID_COMPRESSED):
-                    folders[left[0]] = i + "\n"
+        if len(files) == 3:
+            file_name = files[2].strip()
+            left = file_name.split(SH)
+            if len(left) > 1:
+                if left[0] not in folders:
+                    if left[0].endswith(VALID_COMPRESSED):
+                        folders[left[0]] = i + "\n"
+                    else:
+                        print(left)
+                        print("You shouldn't be here")
                 else:
-                    print(left)
-                    print("You shouldn't be here")
+                    init = folders[left[0]]
+                    folders[left[0]] = init + i + "\n"
             else:
-                init = folders[left[0]]
-                folders[left[0]] = init + i + "\n"
-        else:
-            init = folders["orphaned"]
-            folders["orphaned"] = init + i + "\n"
+                init = folders["orphaned"]
+                folders["orphaned"] = init + i + "\n"
 
     keys = folders.keys()
 
@@ -296,6 +308,12 @@ def process_images(target):
 
     t1 = datetime.datetime.now()
     token = target.split(SH)[-2]
+    
+    progress[token] = {}
+    progress[token]['total'] = 0
+    progress[token]['normalise'] = 0
+    progress[token]['classify'] = 0
+
     compressed_list = [target + filename for filename in os.listdir(target) if filename.endswith(VALID_COMPRESSED)]
 
     # Loop over and extract compressed folders
@@ -303,6 +321,9 @@ def process_images(target):
 
     # Get array of the files in a folder
     only_files = files_in_folder(target)
+
+    # Store the total number of files to be processed in the progress dict
+    progress[token]['total'] = len(only_files)
 
     # Moved this out of the CNN function because its expensive, so its better to only call once.
     json_file = open(APP_ROOT + SH + 'ct3200.dir' + SH + 'model.json', 'r')
@@ -313,10 +334,10 @@ def process_images(target):
     loaded_model.load_weights(APP_ROOT + SH + "ct3200.dir" + SH + "model.h5")
 
     # normalises image files, gives an error if not a valid image type.
-    image_values = normalise_images(only_files, target)
+    image_values = normalise_images(only_files, target, token)
 
     # sends normalised images into the classifier
-    return_values = bulk_classify(image_values, loaded_model)
+    return_values = bulk_classify(image_values, loaded_model, token)
 
     # removes compressed files and folders after they've been extracted.
     file_cleanup(target, compressed_list, folder_list)
@@ -448,17 +469,19 @@ def default_bg():
     :return None:
     """
 
+    default_bg = str(APP_ROOT) + SH + "static" + SH + "img" + SH + "background_default.jpg"
+    bg_destination = str(APP_ROOT) + SH + "static" + SH + "img" + SH + "background.jpg"
     try:
-        default_bg = str(APP_ROOT) + SH + "static" + SH + "img" + SH + "background_default.jpg"
-        bg_destination = str(APP_ROOT) + SH + "static" + SH + "img" + SH + "background.jpg"
         shutil.copy2(default_bg, bg_destination)
     except:
         print("Failed to use default background")
 
 
-def choose_new_background(mode='latest', interval=0):  # mode latest|sequence, interval in seconds
+def choose_new_background(mode='latest', interval=0):
     """
-    @Josef you're up for writing this docstring
+    Updates the background file to be used by the site's css.
+    Latest mode will download and set a new background once per interval. 
+    Sequence mode will iterate through a folder of backgrounds at one iteration per interval.
 
     :param mode: latest OR sequence
     :type mode: str
@@ -510,7 +533,7 @@ def choose_new_background(mode='latest', interval=0):  # mode latest|sequence, i
 
 def download_background():
     """
-    Downloads background image from NASA.
+    Downloads background image.
 
     :return None:
     """
@@ -518,7 +541,7 @@ def download_background():
     url = "https://apod.nasa.gov/apod/astropix.html"
     root_url = "https://apod.nasa.gov/apod/"
     img_url = scrape_img_url(url, root_url)
-    download_img(img_url)
+    download_img_from_url(img_url)
 
 
 def create_backgrounds_folder():
@@ -536,11 +559,13 @@ def create_backgrounds_folder():
 
 def scrape_img_url(url, root_url):
     """
-    Get url of images from NASA. @Josef maybe expand on this a bit?
+    Scrapes URL of an image embedded in html page. 
+    Used for when the latest image url changes but is linked to by the same page.
+    Currently programmed to look for the first image on the page.
 
-    :param url: URL for a get request
+    :param url: URL of the html page the image is embedded in, eg. http://example.com/main.html
     :type url: str
-    :param root_url: ??? help plz @Josef
+    :param root_url: URL stub where the image will be located, eg. http://example.com/images/ <-- image.jpg will be appended here
     :type root_url: str
     :return url:
     """
@@ -563,7 +588,7 @@ def scrape_img_url(url, root_url):
     return img_url
 
 
-def download_img(url):
+def download_img_from_url(url):
     """
     Download image from URL to backgrounds folder.
 
@@ -731,8 +756,15 @@ def return_file(token):
     return to_return
 
 
-
-
+@app.route('/getProgress/<token>', methods=["GET"])
+def getProgress(token):
+    global progress
+    percentage = 0
+    if progress[token]['total'] > 0:
+        percentage = (int) (( 0.02*progress[token]['normalise'] + 0.98*progress[token]['classify'] ) / progress[token]['total'])
+        if percentage > 100:
+            percentage = 100
+    return percentage
 
 
 

@@ -1,4 +1,4 @@
-function copyToClipboard(element) {
+function Copy_To_Clipboard(element) {
   var $temp = $("<textarea>");
   var brRegex = /<br\s*[\/]?>/gi;
   $("body").append($temp);
@@ -7,22 +7,21 @@ function copyToClipboard(element) {
   $temp.remove();
 }
 
-function Get_Function(url, thi, token, count) {
+function Get_Function(url, dropzone, token) {
 	var xhttp;
-	var counter = count + 1;
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			document.getElementById("output").innerHTML = xhttp.responseText;
 			//document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
-			if (status == "Example text"){
+			if (status == "..."){
 				document.getElementById("results").innerHTML = "";
 			} else {
 				// might have to change this to calling a function if it still doesnt like the URL
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 			}
-			thi.removeAllFiles()
-		}
+			dropzone.removeAllFiles()
+		};
 	};
 	xhttp.open("GET", url, true);
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
@@ -43,57 +42,35 @@ var myDropzone = new Dropzone(".dropzone", {
   init: function() {
 	this.on("successmultiple", function(data, status) {
 		document.getElementById("output").innerHTML = "Loading...";
-		Get_Function('/start', this, status, 0);
+		document.getElementById("file").removeAttribute("hidden");
+		Get_Function('/start', this, status);
+		Check_Progress(status);
 	});
   },
 });
 
-// Un-used, but potentially usable functions kept below just in case.
 
-function sleep(milliseconds) {
-  var start = new Date().getTime();
-  for (var i = 0; i < 1e7; i++) {
-    if ((new Date().getTime() - start) > milliseconds){
-      break;
-    }
-  }
+function Check_Progress(token) {
+	var xhttp;
+	xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			if (this.responseText == 100){
+				//window.alert(this.responseText);
+				//window.alert("status next");
+				//window.alert(status);
+				document.getElementById("file").value = this.responseText;
+			} else {
+				//window.alert(xhttp.responseText);
+				//window.alert("status next");
+				//window.alert(status);
+				document.getElementById("file").value = this.responseText;
+				Check_Progress(token)
+			}
+		};
+	};
+	xhttp.open("GET", '/getProgress/'.concat(token), true);
+	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
+	xhttp.send();
 }
 
-
-// This was part of an attempt at a progress bar
-function Get_Progress(values) {
-	if (values[1] != values[2]){
-		console.log(values);
-		move(values[1], values[2])
-		sleep(3000);
-		// Progress is not a valid URL currently. See previous versions (#45) to retrieve
-		loadDoc('/progress/'.concat(values[3]), Get_Progress);
-	} else {
-		move(values[1], values[1])
-		// change this to move the token into the header
-		Get_Results('/results/'.concat(values[3]));
-	}
-}
-
-
-// This was an attempt at a progress bar
-function move(total, completed) {
-	console.log("MOVE");
-	var elem = document.getElementById("myBar");
-	elem.style.display = "block";
-	var curr = elem.style.width;
-	var wid = $(".myBar").width();
-	var perwid = $(".myBar").offsetParent().width()
-	var per = Math.round(100 * ( wid / perwid));
-	console.log(wid);
-	console.log(perwid);
-	console.log(per);
-	console.log(curr);
-	if(total != -1){
-		var compl_ = Math.floor((completed / total) * 100)
-		console.log(compl_);
-		if(compl_ > curr){
-			elem.style.width = compl_ + "%";
-		}
-	}
-}

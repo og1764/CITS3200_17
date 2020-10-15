@@ -39,6 +39,7 @@ from wtforms.validators import DataRequired, ValidationError
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar")  # TODO: Add 7z, Add rar
 IMG_TYPES = ['.jpg', '.png']
+PROGRESS = {}
 UPL_LIFETIME = 60 * 60 * 24 * 1  # [seconds] 60*60*24*1 = once a day
 RES_LIFETIME = 60 * 60 * 24 * 7  # [seconds] 60*60*24*7 = once a week
 BG_INDEX = 0
@@ -52,8 +53,6 @@ app.config.from_object(Config)
 app.secret_key = 'SECRET KEY'
 login = LoginManager(app)
 login.login_view = 'login'
-
-progress = {}
 
 
 def process_compressed(compressed_list):
@@ -118,7 +117,7 @@ def normalise_images(files, target, token):
     :return array:
     """
 
-    global progress
+    global PROGRESS
 
     image_values = []
     for file in files:
@@ -140,7 +139,7 @@ def normalise_images(files, target, token):
             image_values.append((error_message, ""))
         except:
             print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
-        progress[token]['normalise'] = progress[token]['normalise'] + 1
+        PROGRESS[token]['normalise'] = PROGRESS[token]['normalise'] + 1
 
         os.remove(file)
     return image_values
@@ -156,7 +155,7 @@ def bulk_classify(files, loaded_model, token):
     :return array:
     """
 
-    global progress
+    global PROGRESS
 
     return_values = []
     for i in files:
@@ -165,7 +164,7 @@ def bulk_classify(files, loaded_model, token):
         else:
             return_values.append((i[0], ""))
         #append token and filename to progress tracking dictionary
-        progress[token]['classify'] = progress[token]['classify'] + 1
+        PROGRESS[token]['classify'] = PROGRESS[token]['classify'] + 1
     return return_values
 
 
@@ -223,7 +222,7 @@ def format_results(token, results):
     splitted = [i for i in splitted if i]
 
     if html_string == "":
-        html_string = "Example text"
+        html_string = "..."
 
     f = open(results_path, "w+")
     written = html_string.replace(" <br>", "\n")
@@ -308,11 +307,7 @@ def process_images(target):
 
     t1 = datetime.datetime.now()
     token = target.split(SH)[-2]
-    
-    progress[token] = {}
-    progress[token]['total'] = 0
-    progress[token]['normalise'] = 0
-    progress[token]['classify'] = 0
+    global PROGRESS
 
     compressed_list = [target + filename for filename in os.listdir(target) if filename.endswith(VALID_COMPRESSED)]
 
@@ -323,7 +318,7 @@ def process_images(target):
     only_files = files_in_folder(target)
 
     # Store the total number of files to be processed in the progress dict
-    progress[token]['total'] = len(only_files)
+    PROGRESS[token]['total'] = len(only_files)
 
     # Moved this out of the CNN function because its expensive, so its better to only call once.
     json_file = open(APP_ROOT + SH + 'ct3200.dir' + SH + 'model.json', 'r')
@@ -697,6 +692,11 @@ def upload():
         destination = SH.join([upl_target, filename])
         file.save(destination)
 
+    PROGRESS[new_token] = {}
+    PROGRESS[new_token]['total'] = 0
+    PROGRESS[new_token]['normalise'] = 0
+    PROGRESS[new_token]['classify'] = 0
+    
     # 202 Accepted
     return (new_token, 202)
 
@@ -713,6 +713,7 @@ def start_processing():
     token = request.headers.get("TOKEN")
     check_folder()
     target = UPLOADS_FOLDER + token + SH
+    
     # Make uploads folder if doesn't exist
     if not os.path.exists(target):
         os.mkdir(target)
@@ -758,15 +759,22 @@ def return_file(token):
 
 @app.route('/getProgress/<token>', methods=["GET"])
 def getProgress(token):
-    global progress
+    """
+    Gets progress of request based on the token. Returns the percentage completeness.
+
+    :param token: Unique Identifier
+    :type token: str
+    :return progress:
+    """
+    
+    global PROGRESS
     percentage = 0
-    if progress[token]['total'] > 0:
-        percentage = (int) (( 0.02*progress[token]['normalise'] + 0.98*progress[token]['classify'] ) / progress[token]['total'])
+    if PROGRESS[token]['total'] > 0:
+        percentage = int(round((( 0.02*PROGRESS[token]['normalise'] + 0.98*PROGRESS[token]['classify'] ) / PROGRESS[token]['total']) * 100))
         if percentage > 100:
-            percentage = 100
-    return percentage
-
-
+            percentage = 100    
+    to_return = Response(str(percentage))
+    return to_return
 
 
 if __name__ == "__main__":

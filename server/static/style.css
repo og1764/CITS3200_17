@@ -2,7 +2,7 @@
    the current style is different shades of blue
    that are consistent across the website, this
    can easily be adjusted but all colours should
-   be changed together to keep a consistent style. 
+   be changed together to keep a consistent style.
 */
 
 :root {
@@ -100,13 +100,13 @@ h1, h3, body, label, span, ::placeholder {
 }
 
 #copybutton {
-    margin-bottom:1rem !important;
+    margin-bottom: 1rem;
     display: inline-block;
 }
 
 /* This is to seperate the two buttons (copy and download) */
 .divider {
-    width: 10px; 
+    width: 10px;
     display: inline-block;
 }
 
@@ -152,4 +152,3 @@ button, .btn {
     color: var(--text-colour);
     background-color: var(--subsection-bg);
 }
-

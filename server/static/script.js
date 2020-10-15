@@ -36,6 +36,7 @@ var myDropzone = new Dropzone(".dropzone", {
   autoProcessQueue: false,
   addRemoveLinks: true,
   maxFiles: 10,
+  maxFilesize: 10,
   parallelUploads: 10,
   uploadMultiple: true,
   url: "/upload",
@@ -73,4 +74,3 @@ function Check_Progress(token) {
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
 	xhttp.send();
 }
-

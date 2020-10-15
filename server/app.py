@@ -217,7 +217,7 @@ def format_results(token, results):
             html_string = html_string + "".join(j).replace(root_path, "").replace(" <br>", "<br>")
 
     splitted = html_string.split("<br>")
-    
+
     # Removing empty string from list
     splitted = [i for i in splitted if i]
 
@@ -366,7 +366,7 @@ def CNN(lines, loaded_model):
     x_train = np.zeros((nmodel, n_mesh3))
     x_test = np.zeros((nmodel, n_mesh3))
     y_train = np.zeros(nmodel, dtype=np.int)
-    y_test = np.zeros(nmodel, dtype=np.int) 
+    y_test = np.zeros(nmodel, dtype=np.int)
 
     # For 2D density map data
     for num, j in enumerate(lines):
@@ -391,7 +391,7 @@ def CNN(lines, loaded_model):
             y_vec[j] = y_pred[i, j]
         y_type = np.argmax(y_vec)
         prob = y_vec[y_type]
-        
+
         # Our value for y type defines the type of galaxy we are getting, and in all instances we provide the probability
         galaxy_type = ""
         if y_type == 0:
@@ -400,9 +400,9 @@ def CNN(lines, loaded_model):
             galaxy_type = "S0"
         if y_type == 2:
             galaxy_type = "Sp"
-        
+
         return_values.append("{0}, {1:.2f}%, ".format(galaxy_type, prob*100))
-        
+
     return return_values
 
 
@@ -475,7 +475,7 @@ def default_bg():
 def choose_new_background(mode='latest', interval=0):
     """
     Updates the background file to be used by the site's css.
-    Latest mode will download and set a new background once per interval. 
+    Latest mode will download and set a new background once per interval.
     Sequence mode will iterate through a folder of backgrounds at one iteration per interval.
 
     :param mode: latest OR sequence
@@ -554,7 +554,7 @@ def create_backgrounds_folder():
 
 def scrape_img_url(url, root_url):
     """
-    Scrapes URL of an image embedded in html page. 
+    Scrapes URL of an image embedded in html page.
     Used for when the latest image url changes but is linked to by the same page.
     Currently programmed to look for the first image on the page.
 
@@ -613,15 +613,15 @@ def load_user(user_id):
 @app.route('/home')
 def example():
     """ Homepage """
-    # TODO: Change example.html to something more useful
-    return render_template('example.html', title='Example')
+    return render_template('home.html')
 
 
 @app.route("/manual", methods=['GET', 'POST'])
+@login_required
 def manual():
     """ Manual page """
     choose_new_background(mode='latest', interval=60 * 60 * 6)  # [seconds] 60*60*24 = once every 24 hours
-    return render_template('manual.html', title='Manual')
+    return render_template('manual.html')
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -651,7 +651,7 @@ def logout():
 def main():
     """ Main webpage """
     choose_new_background(mode='latest', interval=60 * 60 * 6)  # [seconds] 60*60*24 = once every 24 hours
-    return render_template('main.html', title='Main')
+    return render_template('main.html')
 
 
 @app.route("/upload", methods=['POST'])
@@ -671,7 +671,7 @@ def upload():
     new_token = ''.join(random.choice(string.ascii_letters) for i in range(12))
     upl_target = UPLOADS_FOLDER + new_token + SH
     res_target = RESULTS_FOLDER + new_token + SH
-    
+
     while os.path.exists(upl_target) or os.path.exists(res_target):
         new_token = ''.join(random.choice(string.ascii_letters) for i in range(12))
         upl_target = UPLOADS_FOLDER + new_token + SH
@@ -696,7 +696,7 @@ def upload():
     PROGRESS[new_token]['total'] = 0
     PROGRESS[new_token]['normalise'] = 0
     PROGRESS[new_token]['classify'] = 0
-    
+
     # 202 Accepted
     return (new_token, 202)
 
@@ -713,7 +713,7 @@ def start_processing():
     token = request.headers.get("TOKEN")
     check_folder()
     target = UPLOADS_FOLDER + token + SH
-    
+
     # Make uploads folder if doesn't exist
     if not os.path.exists(target):
         os.mkdir(target)
@@ -723,14 +723,14 @@ def start_processing():
 @app.route('/getResults/<token>')
 def return_file(token):
     """
-    Gets results files based on the token. If there are multiple files, zip them and return the zip file to the user, 
+    Gets results files based on the token. If there are multiple files, zip them and return the zip file to the user,
     otherwise return just one text file.
 
     :param token: Unique Identifier
     :type token: str
     :return file:
     """
-    
+
     left_path = RESULTS_FOLDER + token + SH
     files = [f for f in os.listdir(left_path)]
     output_files = [i for i in files if i not in ['progress.txt', 'results.txt']]
@@ -766,13 +766,13 @@ def getProgress(token):
     :type token: str
     :return progress:
     """
-    
+
     global PROGRESS
     percentage = 0
     if PROGRESS[token]['total'] > 0:
         percentage = int(round((( 0.02*PROGRESS[token]['normalise'] + 0.98*PROGRESS[token]['classify'] ) / PROGRESS[token]['total']) * 100))
         if percentage > 100:
-            percentage = 100    
+            percentage = 100
     to_return = Response(str(percentage))
     return to_return
 

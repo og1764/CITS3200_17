@@ -24,7 +24,7 @@ How the website works wholistically:
 		Firstly, it creates a list of compressed folders, and then extracts them.
 		It then loops over all of the uploads folder and puts the path of each file in a list so they can be easily processed.
 		
-	
+	TO DO - Fill this out
 	
 	
 	
@@ -60,11 +60,11 @@ What the client needs to change to add other functionality:
 Additional Functionality
 
 	Steps required to add another neural network:
-		Edit main.html and add an option to the "task" form-group (see example on line 40)
+		Edit main.html and add an option to the "task" form-group (see example on line 42)
 		Edit app.py in the following ways:
 			Add your neural network as a function
 			
-			change the first else statement in process_images (at around line 310) to ```elif neural_network in [{}]: ``` where {} is the set of options in the task group that this applies to
+			Change the first else statement in process_images (at around line 362) to ```elif neural_network in [{}]: ``` where {} is the set of options in the task group that this applies to
 			Take out the part where you load the model from a file, and paste it into the elif
 			
 			For each if statement, you need to assess:

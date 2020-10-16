@@ -363,7 +363,7 @@ def process_images(target, neural_network):
         # Whatever you need for the other nural network
         pass
 
-     if neural_network in ["shape"]:
+    if neural_network in ["shape"]:
         # normalises image files, gives an error if not a valid image type.
         image_values = normalise_images(only_files, target)
     else:
@@ -662,7 +662,7 @@ def load_user(user_id):
 
 @app.route('/')
 @app.route('/home')
-def example():
+def home():
     """ Homepage """
     return render_template('home.html')
 
@@ -837,6 +837,12 @@ def getProgress(token):
 
 @app.route('/timeout', methods=["GET"])
 def on_timeout():
+    """
+    Allows results to be collected even if Heroku times out. 
+    
+    :return 408 timeout OR results:
+    """
+    
     token = request.headers.get("TOKEN")
     if os.path.exists(RESULTS_FOLDER + token + SH + "done.txt"):
         file = RESULTS_FOLDER + token + SH + "results.txt"
@@ -849,6 +855,14 @@ def on_timeout():
 
 @app.route('/getImages/<token>', methods=["GET"])
 def return_images(token):
+    """
+    Gets black and white image files based on the token, zips them and returns the zip file to the user,
+
+    :param token: Unique Identifier
+    :type token: str
+    :return file:
+    """
+    
     left_path = B_W_FOLDER + token + SH
     files = [f for f in os.listdir(left_path)]
     output_files = [i for i in files if i not in ['progress.txt', 'results.txt', 'done.txt']]
@@ -870,6 +884,7 @@ def return_images(token):
         return to_return
     print("idk why we're here. this is an issue")
     return 0
+
 
 if __name__ == "__main__":
     app.run()

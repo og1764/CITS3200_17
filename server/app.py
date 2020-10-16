@@ -227,6 +227,8 @@ def format_results(token, results):
     left_path = str(RESULTS_FOLDER) + token + SH
     root_path = UPLOADS_FOLDER + token + SH
     results_path = RESULTS_FOLDER + token + SH + "results.txt"
+    timeout_path = RESULTS_FOLDER + token + SH + "timeout.txt"
+    done_path = RESULTS_FOLDER + token + sh + "done.txt"
 
     for i in results:
         for j in i:
@@ -276,6 +278,15 @@ def format_results(token, results):
             text = folders[key].replace(" <br>", "\n")
             f.write(text)
             f.close()
+    
+    f = open(timeout_path, "w+")
+    f.write(html_string)
+    f.close()
+    
+    f = open(done_path, "w+")
+    f.write(" ")
+    f.close()
+    
     return html_string[0:-4]
 
 
@@ -313,13 +324,6 @@ def check_folder():
                     shutil.rmtree(u_path)
     except:
         print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
-
-
-def timeout_resolution(token, data):
-    """
-    write data to results.txt
-    create done.txt file
-    """
 
 
 def process_images(target):
@@ -366,8 +370,6 @@ def process_images(target):
 
     # This formats results to be sent back and creates a text file
     to_send = format_results(token, return_values)
-
-    timeout_resolution(token, to_send)
 
     t2 = datetime.datetime.now()
     tot_time = t2 - t1
@@ -765,7 +767,7 @@ def return_file(token):
 
     left_path = RESULTS_FOLDER + token + SH
     files = [f for f in os.listdir(left_path)]
-    output_files = [i for i in files if i not in ['progress.txt', 'results.txt', 'done.txt']]
+    output_files = [i for i in files if i not in ['progress.txt', 'results.txt', 'done.txt', 'timeout.txt']]
     if len(output_files) > 0 and output_files != ["images.txt"]:
         memory_file = io.BytesIO()
         with zipfile.ZipFile(memory_file, 'w') as zf:

@@ -96,6 +96,7 @@ function Get_Function(url, dropzone, token) {
 			} else {
 				// might have to change this to calling a function if it still doesnt like the URL
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
+				document.getElementById("bw-images").innerHTML = '<a href="/getImages/'.concat(token,'" download><button>Download B&W Images</button></a>');
 			}
 			dropzone.removeAllFiles()
 		}else if (this.status == 408){
@@ -166,6 +167,7 @@ function Timeout_Function(url, dropzone, token){
 			} else {
 				// might have to change this to calling a function if it still doesnt like the URL
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
+				document.getElementById("bw-images").innerHTML = '<a href="/getImages/'.concat(token,'" download><button>Download B&W Images</button></a>');
 			}
 			dropzone.removeAllFiles()
 		}else if (this.readyState == 4 && this.status == 408) {

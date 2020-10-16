@@ -40,8 +40,9 @@ APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar")  # TODO: Add 7z, Add rar
 IMG_TYPES = ['.jpg', '.png']
 PROGRESS = {}
+B_W_LIFETIME = 60 * 60 * 24 * 1  # [seconds] 60*60*24*1 = once a day
 UPL_LIFETIME = 60 * 60 * 24 * 1  # [seconds] 60*60*24*1 = once a day
-RES_LIFETIME = 60 * 60 * 24 * 7  # [seconds] 60*60*24*7 = once a week
+RES_LIFETIME = 60 * 60 * 24 * 1  # [seconds] 60*60*24*1 = once a day
 BG_INDEX = 0
 BG_SET_TIME = 0.0
 SH = os.sep
@@ -137,13 +138,13 @@ def normalise_images(files, target, token):
             image_values.append((norm_val, name + " <br>"))
             # save file to results\BW\
             # ah shit we're going to have to make all of the fucking directories....
-            for i in range(len(path)-1):
+            for i in range(len(path) - 1):
                 subpath = B_W_FOLDER + token + SH + path[i]
                 if not os.path.exists(subpath):
                     os.mkdir(subpath)
-            #print(B_W_FOLDER + name)
+            # print(B_W_FOLDER + name)
             result.save(B_W_FOLDER + token + SH + name)
-                
+
             initial.close()
         except UnidentifiedImageError:
             print("Unidentified Image Error")
@@ -293,6 +294,12 @@ def check_folder():
     for r in os.listdir(RESULTS_FOLDER):
         r_path = os.path.join(RESULTS_FOLDER, r)
         if os.stat(r_path).st_mtime < now - RES_LIFETIME:
+            if os.path.isdir(r_path):
+                shutil.rmtree(r_path)
+             
+    for r in os.listdir(B_W_FOLDER):
+        r_path = os.path.join(B_W_FOLDER, r)
+        if os.stat(r_path).st_mtime < now - B_W_LIFETIME:
             if os.path.isdir(r_path):
                 shutil.rmtree(r_path)
 
@@ -806,26 +813,38 @@ def getProgress(token):
 @app.route('/timeout', methods=["GET"])
 def on_timeout():
     token = request.headers.get("TOKEN")
-    """
-    if done.txt exists:
-        get contents of results.txt
-        make HTML
-        return string
-    else:
-        wait 5s
-        return timeout (408)
-
-    """
+    if os.path.exists(RESULTS_FOLDER + token + SH + "done.txt"):
+        file = RESULTS_FOLDER + token + SH + "results.txt"
+        with open(file) as f:
+            txt_content = f.read()
+        return txt_content
+    # Ideally I have some sort of wait so that it doesn't spam the timeout function, but idk how to do that without slowing everything down with a time.sleep or some shit
+    return 408
 
 
 @app.route('/getImages/<token>', methods=["GET"])
 def return_images(token):
-    """
-    Get all images in results\token\BW folder
-    Zip em up
-    Return them
-    """
-
+    left_path = B_W_FOLDER + token + SH
+    files = [f for f in os.listdir(left_path)]
+    output_files = [i for i in files if i not in ['progress.txt', 'results.txt', 'done.txt']]
+    print(output_files)
+    if len(output_files) > 0 and output_files != ["images.txt"]:
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w') as zf:
+            for root, dirs, files in os.walk(left_path):
+                for file in files:
+                    full_path = os.path.join(root, file)
+                    sub_path = full_path.replace(left_path, "")
+                    zf.write(full_path, sub_path)
+        memory_file.seek(0)
+        to_return = Response(
+            memory_file,
+            mimetype="application/zip",
+            headers={"Content-disposition":
+                         "attachment; filename=B_W_images.zip"})
+        return to_return
+    print("idk why we're here. this is an issue")
+    return 0
 
 if __name__ == "__main__":
     app.run()

@@ -20,7 +20,8 @@ from Model import query_user, User
 from PIL import Image, UnidentifiedImageError
 from bs4 import BeautifulSoup
 from config import Config
-from flask import flash, Flask, json, redirect, render_template, request, Response, send_file, send_from_directory, url_for
+from flask import flash, Flask, json, redirect, render_template, request, Response, send_file, send_from_directory, \
+    url_for
 from flask_login import current_user, login_required, login_user, LoginManager, logout_user
 from flask_wtf import FlaskForm
 from keras import backend as K
@@ -35,7 +36,6 @@ from werkzeug.urls import url_parse
 from wtforms import SelectField, SubmitField
 from wtforms.validators import DataRequired, ValidationError
 
-
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar")  # TODO: Add 7z, Add rar
 IMG_TYPES = ['.jpg', '.png']
@@ -47,6 +47,7 @@ BG_SET_TIME = 0.0
 SH = os.sep
 RESULTS_FOLDER = str(APP_ROOT) + SH + "results" + SH
 UPLOADS_FOLDER = str(APP_ROOT) + SH + "uploads" + SH
+B_W_FOLDER = str(APP_ROOT) + SH + "black_and_white" + SH
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -66,6 +67,7 @@ def process_compressed(compressed_list):
     """
 
     folder_list = []
+
     for file in compressed_list:
         if file.endswith((".tar", ".tar.gz")):
             tf = tarfile.open(file)
@@ -92,6 +94,7 @@ def files_in_folder(target):
 
     file_list = os.listdir(target)
     result = []
+
     # Iterate over all the entries
     for entry in file_list:
         # Create full path
@@ -118,18 +121,29 @@ def normalise_images(files, target, token):
     """
 
     global PROGRESS
-
     image_values = []
+
     for file in files:
         name = file.replace(target, "")
         name = name.replace(".dir", "")
+        path = name.split(SH)
         print(name)
+        print(path)
         try:
             initial = Image.open(file)
             result = initial.resize((50, 50)).convert("L")
             pix_val = list(result.getdata())
             norm_val = [i / 255 for i in pix_val]
             image_values.append((norm_val, name + " <br>"))
+            # save file to results\BW\
+            # ah shit we're going to have to make all of the fucking directories....
+            for i in range(len(path)-1):
+                subpath = B_W_FOLDER + token + SH + path[i]
+                if not os.path.exists(subpath):
+                    os.mkdir(subpath)
+            #print(B_W_FOLDER + name)
+            result.save(B_W_FOLDER + token + SH + name)
+                
             initial.close()
         except UnidentifiedImageError:
             print("Unidentified Image Error")
@@ -156,14 +170,14 @@ def bulk_classify(files, loaded_model, token):
     """
 
     global PROGRESS
-
     return_values = []
+
     for i in files:
         if i[1] != "":
             return_values.append((CNN(i[0], loaded_model), i[1]))
         else:
             return_values.append((i[0], ""))
-        #append token and filename to progress tracking dictionary
+        # append token and filename to progress tracking dictionary
         PROGRESS[token]['classify'] = PROGRESS[token]['classify'] + 1
     return return_values
 
@@ -212,6 +226,7 @@ def format_results(token, results):
     left_path = str(RESULTS_FOLDER) + token + SH
     root_path = UPLOADS_FOLDER + token + SH
     results_path = RESULTS_FOLDER + token + SH + "results.txt"
+
     for i in results:
         for j in i:
             html_string = html_string + "".join(j).replace(root_path, "").replace(" <br>", "<br>")
@@ -228,6 +243,7 @@ def format_results(token, results):
     written = html_string.replace(" <br>", "\n")
     f.write(written)
     f.close()
+
     for i in splitted:
         files = str(i).split(",")
         if len(files) == 3:
@@ -273,13 +289,13 @@ def check_folder():
     """
 
     now = time.time()
+
     for r in os.listdir(RESULTS_FOLDER):
         r_path = os.path.join(RESULTS_FOLDER, r)
         if os.stat(r_path).st_mtime < now - RES_LIFETIME:
             if os.path.isdir(r_path):
                 shutil.rmtree(r_path)
-        # else:
-        #     print("{}: {} > {}".format(r_path, os.stat(r_path).st_mtime, now - res_LIFETIME))
+
     try:
         now = time.time()
         for u in os.listdir(UPLOADS_FOLDER):
@@ -288,11 +304,15 @@ def check_folder():
             if u_create < now - UPL_LIFETIME:
                 if os.path.isdir(u_path):
                     shutil.rmtree(u_path)
-                    print(str(u_path) + " was deleted.")
-            # else:
-            #     print("{}: {} > {}".format(u_path, u_create, now - upl_LIFETIME))
     except:
         print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
+
+
+def timeout_resolution(token, data):
+    """
+    write data to results.txt
+    create done.txt file
+    """
 
 
 def process_images(target):
@@ -340,12 +360,13 @@ def process_images(target):
     # This formats results to be sent back and creates a text file
     to_send = format_results(token, return_values)
 
+    timeout_resolution(token, to_send)
+
     t2 = datetime.datetime.now()
     tot_time = t2 - t1
     print("\nTime taken for this request: " + str(tot_time) + "\n")
 
     return to_send
-
 
 
 def CNN(lines, loaded_model):
@@ -401,12 +422,11 @@ def CNN(lines, loaded_model):
         if y_type == 2:
             galaxy_type = "Sp"
 
-        return_values.append("{0}, {1:.2f}%, ".format(galaxy_type, prob*100))
+        return_values.append("{0}, {1:.2f}%, ".format(galaxy_type, prob * 100))
 
     return return_values
 
 
-# @Josef please check following docstrings to see if they're correct
 def files_sorted_by_date(dir_path):
     """
     Returns files in directory sorted by creation date.
@@ -646,6 +666,7 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
 @app.route("/main", methods=['GET', 'POST'])
 @login_required
 def main():
@@ -667,19 +688,23 @@ def upload():
         os.mkdir(UPLOADS_FOLDER)
     if not os.path.exists(RESULTS_FOLDER):
         os.mkdir(RESULTS_FOLDER)
+    if not os.path.exists(B_W_FOLDER):
+        os.mkdir(B_W_FOLDER)
 
     new_token = ''.join(random.choice(string.ascii_letters) for i in range(12))
     upl_target = UPLOADS_FOLDER + new_token + SH
     res_target = RESULTS_FOLDER + new_token + SH
+    b_w_target = B_W_FOLDER + new_token + SH
 
     while os.path.exists(upl_target) or os.path.exists(res_target):
         new_token = ''.join(random.choice(string.ascii_letters) for i in range(12))
         upl_target = UPLOADS_FOLDER + new_token + SH
         res_target = RESULTS_FOLDER + new_token + SH
-
+        b_w_target = B_W_FOLDER + new_token + SH
 
     os.mkdir(upl_target)
     os.mkdir(res_target)
+    os.mkdir(b_w_target)
 
     rand_results = res_target + "results.txt"
     f = open(rand_results, "w")
@@ -733,7 +758,7 @@ def return_file(token):
 
     left_path = RESULTS_FOLDER + token + SH
     files = [f for f in os.listdir(left_path)]
-    output_files = [i for i in files if i not in ['progress.txt', 'results.txt']]
+    output_files = [i for i in files if i not in ['progress.txt', 'results.txt', 'done.txt']]
     if len(output_files) > 0 and output_files != ["images.txt"]:
         memory_file = io.BytesIO()
         with zipfile.ZipFile(memory_file, 'w') as zf:
@@ -770,11 +795,36 @@ def getProgress(token):
     global PROGRESS
     percentage = 0
     if PROGRESS[token]['total'] > 0:
-        percentage = int(round((( 0.02*PROGRESS[token]['normalise'] + 0.98*PROGRESS[token]['classify'] ) / PROGRESS[token]['total']) * 100))
+        percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
+                                PROGRESS[token]['total']) * 100))
         if percentage > 100:
             percentage = 100
     to_return = Response(str(percentage))
     return to_return
+
+
+@app.route('/timeout', methods=["GET"])
+def on_timeout():
+    token = request.headers.get("TOKEN")
+    """
+    if done.txt exists:
+        get contents of results.txt
+        make HTML
+        return string
+    else:
+        wait 5s
+        return timeout (408)
+
+    """
+
+
+@app.route('/getImages/<token>', methods=["GET"])
+def return_images(token):
+    """
+    Get all images in results\token\BW folder
+    Zip em up
+    Return them
+    """
 
 
 if __name__ == "__main__":

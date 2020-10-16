@@ -326,7 +326,7 @@ def check_folder():
         print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
 
 
-def process_images(target):
+def process_images(target, neural_network):
     """
     Takes in a file path to a folder, and processes the images in that folder. Essentially the main loop of the program.
     Returns a html string to show on the webpage.
@@ -351,25 +351,47 @@ def process_images(target):
     # Store the total number of files to be processed in the progress dict
     PROGRESS[token]['total'] = len(only_files)
 
-    # Moved this out of the CNN function because its expensive, so its better to only call once.
-    json_file = open(APP_ROOT + SH + 'ct3200.dir' + SH + 'model.json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    loaded_model = model_from_json(loaded_model_json)
-    # load weights into new model
-    loaded_model.load_weights(APP_ROOT + SH + "ct3200.dir" + SH + "model.h5")
+    if neural_network in ["shape"]:
+        # Moved this out of the CNN function because its expensive, so its better to only call once.
+        json_file = open(APP_ROOT + SH + 'ct3200.dir' + SH + 'model.json', 'r')
+        loaded_model_json = json_file.read()
+        json_file.close()
+        loaded_model = model_from_json(loaded_model_json)
+        # load weights into new model
+        loaded_model.load_weights(APP_ROOT + SH + "ct3200.dir" + SH + "model.h5") 
+    else:
+        # Whatever you need for the other nural network
+        pass
 
-    # normalises image files, gives an error if not a valid image type.
-    image_values = normalise_images(only_files, target, token)
+     if neural_network in ["shape"]:
+        # normalises image files, gives an error if not a valid image type.
+        image_values = normalise_images(only_files, target)
+    else:
+        # if normalise_images isn't suitable for your function
+        # image_values = ?
+        pass
 
-    # sends normalised images into the classifier
-    return_values = bulk_classify(image_values, loaded_model, token)
+    if neural_network in ["shape"]:
+        # sends normalised images into the classifier
+        return_values = bulk_classify(image_values, loaded_model)
+    else:
+        # Your version of bulk_classify that works with the other neural network
+        # return_values = ?
+        pass
 
-    # removes compressed files and folders after they've been extracted.
-    file_cleanup(target, compressed_list, folder_list)
+    if neural_network in ["shape"]:
+        # removes compressed files and folders after they've been extracted.
+        file_cleanup(target, compressed_list, folder_list)
+    else:
+        # if file_cleanup isn't suitable for your function
+        pass
 
-    # This formats results to be sent back and creates a text file
-    to_send = format_results(token, return_values)
+    if neural_network in ["shape"]:
+        # This formats results to be sent back and creates a text file
+        to_send = format_results(token, return_values)
+    else:
+        # if format_results isn't suitable for your function
+        to_send = ""
 
     t2 = datetime.datetime.now()
     tot_time = t2 - t1
@@ -745,13 +767,14 @@ def start_processing():
     """
 
     token = request.headers.get("TOKEN")
+    neural_network = request.headers.get("NETWORK")
     check_folder()
     target = UPLOADS_FOLDER + token + SH
 
     # Make uploads folder if doesn't exist
     if not os.path.exists(target):
         os.mkdir(target)
-    return process_images(target)
+    return process_images(target, neural_network)
 
 
 @app.route('/getResults/<token>')

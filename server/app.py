@@ -228,7 +228,7 @@ def format_results(token, results):
     root_path = UPLOADS_FOLDER + token + SH
     results_path = RESULTS_FOLDER + token + SH + "results.txt"
     timeout_path = RESULTS_FOLDER + token + SH + "timeout.txt"
-    done_path = RESULTS_FOLDER + token + sh + "done.txt"
+    done_path = RESULTS_FOLDER + token + SH + "done.txt"
 
     for i in results:
         for j in i:
@@ -339,7 +339,7 @@ def process_images(target, neural_network):
     t1 = datetime.datetime.now()
     token = target.split(SH)[-2]
     global PROGRESS
-
+    print(neural_network)
     compressed_list = [target + filename for filename in os.listdir(target) if filename.endswith(VALID_COMPRESSED)]
 
     # Loop over and extract compressed folders
@@ -365,7 +365,7 @@ def process_images(target, neural_network):
 
     if neural_network in ["shape"]:
         # normalises image files, gives an error if not a valid image type.
-        image_values = normalise_images(only_files, target)
+        image_values = normalise_images(only_files, target, token)
     else:
         # if normalise_images isn't suitable for your function
         # image_values = ?
@@ -373,7 +373,7 @@ def process_images(target, neural_network):
 
     if neural_network in ["shape"]:
         # sends normalised images into the classifier
-        return_values = bulk_classify(image_values, loaded_model)
+        return_values = bulk_classify(image_values, loaded_model, token)
     else:
         # Your version of bulk_classify that works with the other neural network
         # return_values = ?
@@ -767,10 +767,10 @@ def start_processing():
     """
 
     token = request.headers.get("TOKEN")
-    neural_network = request.headers.get("NETWORK")
+    neural_network = request.headers.get("NETWORK").lower()
     check_folder()
     target = UPLOADS_FOLDER + token + SH
-
+    print(neural_network)
     # Make uploads folder if doesn't exist
     if not os.path.exists(target):
         os.mkdir(target)
@@ -831,6 +831,7 @@ def getProgress(token):
                                 PROGRESS[token]['total']) * 100))
         if percentage > 100:
             percentage = 100
+    print(percentage)
     to_return = Response(str(percentage))
     return to_return
 

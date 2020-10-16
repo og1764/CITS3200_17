@@ -11,16 +11,14 @@ function Get_Function(url, dropzone, token) {
 	var xhttp;
 	var options = document.getElementById("task").options;
 	var index = document.getElementById("task").selectedIndex;
-	var network = options[index].text
+	var network = options[index].text;
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			document.getElementById("output").innerHTML = xhttp.responseText;
-			//document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
 			if (status == "..."){
 				document.getElementById("results").innerHTML = "";
 			} else {
-				// might have to change this to calling a function if it still doesnt like the URL
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 				document.getElementById("bw-images").innerHTML = '<a href="/getImages/'.concat(token,'" download><button>Download B&W Images</button></a>');
 			}
@@ -44,6 +42,7 @@ var myDropzone = new Dropzone(".dropzone", {
   autoProcessQueue: false,
   addRemoveLinks: true,
   maxFiles: 10,
+  maxFilesize: 10,
   parallelUploads: 10,
   uploadMultiple: true,
   url: "/upload",
@@ -64,14 +63,8 @@ function Check_Progress(token) {
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			if (this.responseText == 100){
-				//window.alert(this.responseText);
-				//window.alert("status next");
-				//window.alert(status);
 				document.getElementById("file").value = this.responseText;
 			} else {
-				//window.alert(xhttp.responseText);
-				//window.alert("status next");
-				//window.alert(status);
 				document.getElementById("file").value = this.responseText;
 				Check_Progress(token)
 			}
@@ -88,11 +81,9 @@ function Timeout_Function(url, dropzone, token){
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			document.getElementById("output").innerHTML = xhttp.responseText;
-			//document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
 			if (status == "..."){
 				document.getElementById("results").innerHTML = "";
 			} else {
-				// might have to change this to calling a function if it still doesnt like the URL
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 				document.getElementById("bw-images").innerHTML = '<a href="/getImages/'.concat(token,'" download><button>Download B&W Images</button></a>');
 			}
@@ -106,3 +97,4 @@ function Timeout_Function(url, dropzone, token){
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
 	xhttp.setRequestHeader("TOKEN", token);
 	xhttp.send();
+}

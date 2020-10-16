@@ -1,13 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <title>Classification Tool</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
   integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <link rel="stylesheet" href="https://rawgit.com/enyo/dropzone/master/dist/dropzone.css">
+  <link rel="stylesheet" href="../static/dropzone.css">
   <link href="../static/style.css" rel="stylesheet" type="text/css" media="all">
-  <script src="https://rawgit.com/enyo/dropzone/master/dist/dropzone.js"></script>
+  <script src="../static/dropzone.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 </head>
 
@@ -47,17 +48,16 @@
         <br>
         <button class="mb-5" id="classify" onclick="Dropzone.forElement('.dropzone').processQueue()">Upload and Classify!</button>
         <p>Output:</p>
-        <button class="mb-5" id="copybutton" onclick="Copy_To_Clipboard('#output')">Copy result to clipboard</button>
+        <button id="copybutton" onclick="Copy_To_Clipboard('#output')">Copy result to clipboard</button>
         <div class="divider"></div>
         <p id="results"></p>
-        <div class="card">
+        <div class="card mb-5">
           <div class="card-body">
-			<label for="file">Downloading progress:</label>
-			<progress id="file" value="0" max="100"> 0% </progress>
+            <label for="file">Downloading progress:</label>
+            <progress id="file" value="0" max="100"> 0% </progress>
             <p id="output">...</p>
           </div>
         </div>
-        <br>
       </div>
     </div>
   </div>

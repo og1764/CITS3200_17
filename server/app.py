@@ -818,6 +818,7 @@ def return_file(token):
 def getProgress(token):
     """
     Gets progress of request based on the token. Returns the percentage completeness.
+    If the progress hasn't incremented, wait for a period of time.
 
     :param token: Unique Identifier
     :type token: str
@@ -827,14 +828,16 @@ def getProgress(token):
     global PROGRESS
     percentage = 0
     previous = request.headers.get("PREV")
+    wait = request.headers.get("WAIT")
+    waiting_time = min(wait + 1, 5)
     if PROGRESS[token]['total'] > 0:
         percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
                                 PROGRESS[token]['total']) * 100))
         if percentage > 100:
             percentage = 100
     if percentage == int(previous):
-        time.sleep(1)
-    to_return = Response(str(percentage))
+        time.sleep(waiting_time)
+    to_return = Response(str(percentage), headers={"NUMBER": str(waiting_time)})
     return to_return
 
 
@@ -847,13 +850,25 @@ def on_timeout():
     """
     
     token = request.headers.get("TOKEN")
+    previous = request.headers.get("PREV")
+    wait = request.headers.get("WAIT")
+    waiting_time = min(wait + 1, 5)
+    
     if os.path.exists(RESULTS_FOLDER + token + SH + "done.txt"):
         file = RESULTS_FOLDER + token + SH + "results.txt"
         with open(file) as f:
             txt_content = f.read()
         return txt_content
     # Ideally I have some sort of wait so that it doesn't spam the timeout function, but idk how to do that without slowing everything down with a time.sleep or some shit
-    return 408
+    else:
+        if PROGRESS[token]['total'] > 0:
+            percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
+                                    PROGRESS[token]['total']) * 100))
+            if percentage > 100:
+                percentage = 100
+            if percentage == previous:
+                time.sleep(waiting_time)
+        return Response(str(percentage), 408, headers={"NUMBER": str(waiting_time)})
 
 
 @app.route('/getImages/<token>', methods=["GET"])

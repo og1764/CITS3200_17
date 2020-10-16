@@ -25,7 +25,7 @@ function Get_Function(url, dropzone, token) {
 			dropzone.removeAllFiles()
 		}else if (this.status == 408){
 			// If timeout
-			Timeout_Function("/timeout", dropzone, token);
+			Timeout_Function("/timeout", dropzone, token, -1, -1);
 		};
 	};
 	xhttp.open("GET", url, true);
@@ -57,7 +57,7 @@ var myDropzone = new Dropzone(".dropzone", {
 });
 
 
-function Check_Progress(token, previous) {
+function Check_Progress(token, previous, wait) {
 	var xhttp;
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
@@ -73,10 +73,11 @@ function Check_Progress(token, previous) {
 	xhttp.open("GET", '/getProgress/'.concat(token), true);
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
 	xhttp.setRequestHeader("PREV", previous);
+	xhttp.setRequestHeader("WAIT",
 	xhttp.send();
 }
 
-function Timeout_Function(url, dropzone, token){
+function Timeout_Function(url, dropzone, token, previous, wait){
 	var xhttp;
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
@@ -91,11 +92,13 @@ function Timeout_Function(url, dropzone, token){
 			dropzone.removeAllFiles()
 		}else if (this.readyState == 4 && this.status == 408) {
 			console.log("Timeout Function Hit");
-			Timeout_Function(url, dropzone, token);
+			var waiting = this.getResponseHeader("NUMBER");
+			Timeout_Function(url, dropzone, token, this.responseText, waiting);
 		};
 	};
 	xhttp.open("GET", url, true);
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
 	xhttp.setRequestHeader("TOKEN", token);
+	xhttp.setRequestHeader("WAIT", 0)
 	xhttp.send();
 }

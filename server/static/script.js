@@ -51,13 +51,13 @@ var myDropzone = new Dropzone(".dropzone", {
 		document.getElementById("output").innerHTML = "Loading...";
 		document.getElementById("file").removeAttribute("hidden");
 		Get_Function('/start', this, status);
-		Check_Progress(status);
+		Check_Progress(status, -1);
 	});
   },
 });
 
 
-function Check_Progress(token) {
+function Check_Progress(token, previous) {
 	var xhttp;
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
@@ -66,12 +66,13 @@ function Check_Progress(token) {
 				document.getElementById("file").value = this.responseText;
 			} else {
 				document.getElementById("file").value = this.responseText;
-				Check_Progress(token)
+				Check_Progress(token, this.responseText)
 			}
 		};
 	};
 	xhttp.open("GET", '/getProgress/'.concat(token), true);
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
+	xhttp.setRequestHeader("PREV", previous);
 	xhttp.send();
 }
 

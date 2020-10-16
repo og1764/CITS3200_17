@@ -826,12 +826,14 @@ def getProgress(token):
 
     global PROGRESS
     percentage = 0
+    previous = request.headers.get("PREV")
     if PROGRESS[token]['total'] > 0:
         percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
                                 PROGRESS[token]['total']) * 100))
         if percentage > 100:
             percentage = 100
-    print(percentage)
+    if percentage == int(previous):
+        time.sleep(1)
     to_return = Response(str(percentage))
     return to_return
 

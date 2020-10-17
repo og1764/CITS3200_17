@@ -60,7 +60,7 @@ def process_compressed(compressed_list):
     Takes an array of file paths to compressed folders, extracts them,
     and returns the file paths of the extracted folder in an array.
 
-    :param compressed_list: list of file paths
+    :param compressed_list: List of file paths
     :type compressed_list: list
     :return list:
     """

@@ -138,13 +138,14 @@ def normalise_images(files, target, token):
             image_values.append((norm_val, name + " <br>"))
             # save file to results\BW\
             # ah shit we're going to have to make all of the fucking directories....
+            subpath = B_W_FOLDER + token + SH
             for i in range(len(path) - 1):
-                subpath = B_W_FOLDER + token + SH + path[i]
+                subpath = subpath + path[i] + SH
                 if not os.path.exists(subpath):
                     os.mkdir(subpath)
-            # print(B_W_FOLDER + name)
+            print(B_W_FOLDER + token + SH + name)
             result.save(B_W_FOLDER + token + SH + name)
-
+            print("**")
             initial.close()
         except UnidentifiedImageError:
             print("Unidentified Image Error")
@@ -223,7 +224,7 @@ def format_results(token, results):
     """
 
     html_string = ""
-    folders = {"orphaned": ""}
+    folders = {}
     left_path = str(RESULTS_FOLDER) + token + SH
     root_path = UPLOADS_FOLDER + token + SH
     results_path = RESULTS_FOLDER + token + SH + "results.txt"
@@ -263,11 +264,15 @@ def format_results(token, results):
                     init = folders[left[0]]
                     folders[left[0]] = init + i + "\n"
             else:
-                init = folders["orphaned"]
+                try:
+                    init = folders["orphaned"]
+                except:
+                    init = ""
                 folders["orphaned"] = init + i + "\n"
 
     keys = folders.keys()
-
+    # Somewhere here it's making images.txt even if no additional images are uploaded
+    # gotta figure out why
     if keys != ["orphaned"]:
         for key in keys:
             if key != "orphaned":
@@ -829,16 +834,19 @@ def getProgress(token):
     percentage = 0
     previous = request.headers.get("PREV")
     wait = request.headers.get("WAIT")
-    waiting_time = min(wait + 1, 5)
+    waiting_time = wait
     if PROGRESS[token]['total'] > 0:
         percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
                                 PROGRESS[token]['total']) * 100))
         if percentage > 100:
             percentage = 100
     if percentage == int(previous):
+        waiting_time = min(int(wait) + 1, 5)
         time.sleep(waiting_time)
-    to_return = Response(str(percentage), headers={"NUMBER": str(waiting_time)})
-    return to_return
+    else:
+        waiting_time = -1
+    #to_return = Response(str(percentage
+    return str(percentage) + "," + str(waiting_time)
 
 
 @app.route('/timeout', methods=["GET"])
@@ -852,7 +860,7 @@ def on_timeout():
     token = request.headers.get("TOKEN")
     previous = request.headers.get("PREV")
     wait = request.headers.get("WAIT")
-    waiting_time = min(wait + 1, 5)
+    waiting_time = min(int(wait) + 1, 5)
     
     if os.path.exists(RESULTS_FOLDER + token + SH + "done.txt"):
         file = RESULTS_FOLDER + token + SH + "results.txt"
@@ -867,8 +875,11 @@ def on_timeout():
             if percentage > 100:
                 percentage = 100
             if percentage == previous:
+                waiting_time = min(int(wait) + 1, 5)
                 time.sleep(waiting_time)
-        return Response(str(percentage), 408, headers={"NUMBER": str(waiting_time)})
+            else:
+                waiting_time = -1
+        return Response(str(percentage) + "," + str(waiting_time), 408)
 
 
 @app.route('/getImages/<token>', methods=["GET"])

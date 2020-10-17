@@ -128,24 +128,18 @@ def normalise_images(files, target, token):
         name = file.replace(target, "")
         name = name.replace(".dir", "")
         path = name.split(SH)
-        print(name)
-        print(path)
         try:
             initial = Image.open(file)
             result = initial.resize((50, 50)).convert("L")
             pix_val = list(result.getdata())
             norm_val = [i / 255 for i in pix_val]
             image_values.append((norm_val, name + " <br>"))
-            # save file to results\BW\
-            # ah shit we're going to have to make all of the fucking directories....
             subpath = B_W_FOLDER + token + SH
             for i in range(len(path) - 1):
                 subpath = subpath + path[i] + SH
                 if not os.path.exists(subpath):
                     os.mkdir(subpath)
-            print(B_W_FOLDER + token + SH + name)
             result.save(B_W_FOLDER + token + SH + name)
-            print("**")
             initial.close()
         except UnidentifiedImageError:
             print("Unidentified Image Error")
@@ -343,7 +337,7 @@ def process_images(target, neural_network):
     t1 = datetime.datetime.now()
     token = target.split(SH)[-2]
     global PROGRESS
-    print(neural_network)
+
     compressed_list = [target + filename for filename in os.listdir(target) if filename.endswith(VALID_COMPRESSED)]
 
     # Loop over and extract compressed folders
@@ -545,8 +539,8 @@ def choose_new_background(mode='latest', interval=0):
 
     if time.time() > BG_SET_TIME + interval:
         create_backgrounds_folder()
-        ###run updates to the background here
-        ###background downloaded and prepared for detection by css once every time interval
+        # run updates to the background here
+        # background downloaded and prepared for detection by css once every time interval
 
         bg_dir_location = str(APP_ROOT) + SH + "backgrounds" + SH
         bg_destination = str(APP_ROOT) + SH + "static" + SH + "img" + SH + "background.jpg"
@@ -656,8 +650,7 @@ def download_img_from_url(url):
 
 @login.user_loader
 def load_user(user_id):
-    """ Checks if user is logged in (?) """
-    # @Grey is this docstring correct?
+    """ Checks if user is logged in """
     if query_user(user_id) is not None:
         curr_user = User()
         curr_user.id = user_id
@@ -844,7 +837,6 @@ def getProgress(token):
         time.sleep(waiting_time)
     else:
         waiting_time = -1
-    #to_return = Response(str(percentage
     return str(percentage) + "," + str(waiting_time)
 
 
@@ -866,7 +858,6 @@ def on_timeout():
         with open(file) as f:
             txt_content = f.read()
         return txt_content
-    # Ideally I have some sort of wait so that it doesn't spam the timeout function, but idk how to do that without slowing everything down with a time.sleep or some shit
     else:
         if PROGRESS[token]['total'] > 0:
             percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /

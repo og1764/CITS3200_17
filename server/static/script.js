@@ -7,6 +7,7 @@ function Copy_To_Clipboard(element) {
   $temp.remove();
 }
 
+
 function Get_Function(url, dropzone, token) {
 	var xhttp;
 	var options = document.getElementById("task").options;
@@ -20,7 +21,6 @@ function Get_Function(url, dropzone, token) {
 				document.getElementById("results").innerHTML = "";
 			} else {
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
-				//document.getElementById("bw-images").innerHTML = '<a href="/getImages/'.concat(token,'" download id="bw-dl"><button id="bw-bt">Download B&W Images</button></a>');
 				document.getElementById("bw-images").innerHTML = '<button id="bw-bt" onclick=B_W_Download("/getImages/'.concat(token,'")>Download B&W Images</button>');
 			}
 			dropzone.removeAllFiles()
@@ -36,7 +36,9 @@ function Get_Function(url, dropzone, token) {
 	xhttp.send();
 }
 
+
 Dropzone.autoDiscover = false;
+
 
 var myDropzone = new Dropzone(".dropzone", {
   acceptedFiles: ".jpg,.jpeg,.png,.gif,.zip,.tar,.tar.gz",
@@ -82,6 +84,7 @@ function Check_Progress(token, previous, wait) {
 	xhttp.send();
 }
 
+
 function Timeout_Function(url, dropzone, token, previous, wait){
 	var xhttp;
 	xhttp = new XMLHttpRequest();
@@ -92,7 +95,7 @@ function Timeout_Function(url, dropzone, token, previous, wait){
 				document.getElementById("results").innerHTML = "";
 			} else {
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
-				document.getElementById("bw-images").innerHTML = '<a href="/getImages/'.concat(token,'" download id="bw-dl"><button id="bw-bt">Download B&W Images</button></a>');
+				document.getElementById("bw-images").innerHTML = '<button id="bw-bt" onclick=B_W_Download("/getImages/'.concat(token,'")>Download B&W Images</button>');
 			}
 			dropzone.removeAllFiles()
 		}else if (this.readyState == 4 && this.status == 408) {
@@ -112,12 +115,6 @@ function Timeout_Function(url, dropzone, token, previous, wait){
 
 function B_W_Download(url){
 	document.getElementById("bw-bt").innerHTML = "Processing...";
-	Get_B_W(url);
-}
-
-
-function Get_B_W(url) {
-
 	var a = document.createElement("a");
 	document.body.appendChild(a);
 	a.style = "display:none";
@@ -135,3 +132,4 @@ function Get_B_W(url) {
 	}
 	xhttp.send();	
 }
+

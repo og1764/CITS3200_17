@@ -271,8 +271,7 @@ def format_results(token, results):
                 folders["orphaned"] = init + i + "\n"
 
     keys = folders.keys()
-    # Somewhere here it's making images.txt even if no additional images are uploaded
-    # gotta figure out why
+
     if keys != ["orphaned"]:
         for key in keys:
             if key != "orphaned":

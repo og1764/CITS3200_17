@@ -7,29 +7,38 @@ function Copy_To_Clipboard(element) {
   $temp.remove();
 }
 
+
 function Get_Function(url, dropzone, token) {
 	var xhttp;
+	var options = document.getElementById("task").options;
+	var index = document.getElementById("task").selectedIndex;
+	var network = options[index].text;
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
 			document.getElementById("output").innerHTML = xhttp.responseText;
-			//document.getElementById("results").innerHTML = '<a href="/getResults" download><button>Download</button></a>';
 			if (status == "..."){
 				document.getElementById("results").innerHTML = "";
 			} else {
-				// might have to change this to calling a function if it still doesnt like the URL
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
+				document.getElementById("bw-images").innerHTML = '<button id="bw-bt" onclick=B_W_Download("/getImages/'.concat(token,'")>Download B&W Images</button>');
 			}
 			dropzone.removeAllFiles()
+		}else if (this.status == 408){
+			// If timeout
+			Timeout_Function("/timeout", dropzone, token, "-1", "0");
 		};
 	};
 	xhttp.open("GET", url, true);
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
 	xhttp.setRequestHeader("TOKEN", token);
+	xhttp.setRequestHeader("NETWORK", network);
 	xhttp.send();
 }
 
+
 Dropzone.autoDiscover = false;
+
 
 var myDropzone = new Dropzone(".dropzone", {
   acceptedFiles: ".jpg,.jpeg,.png,.gif,.zip,.tar,.tar.gz",
@@ -42,35 +51,85 @@ var myDropzone = new Dropzone(".dropzone", {
   url: "/upload",
   init: function() {
 	this.on("successmultiple", function(data, status) {
+		document.getElementById("bw-images").innerHTML = '<a></a>';
 		document.getElementById("output").innerHTML = "Loading...";
 		document.getElementById("file").removeAttribute("hidden");
 		Get_Function('/start', this, status);
-		Check_Progress(status);
+		Check_Progress(status, "-1", "0");
 	});
   },
 });
 
 
-function Check_Progress(token) {
+function Check_Progress(token, previous, wait) {
 	var xhttp;
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
-			if (this.responseText == 100){
-				//window.alert(this.responseText);
-				//window.alert("status next");
-				//window.alert(status);
-				document.getElementById("file").value = this.responseText;
+			var resp_text = this.responseText;
+			var splitted = resp_text.split(",")
+			if (splitted[0] == 100){
+				document.getElementById("file").value = splitted[0];
 			} else {
-				//window.alert(xhttp.responseText);
-				//window.alert("status next");
-				//window.alert(status);
-				document.getElementById("file").value = this.responseText;
-				Check_Progress(token)
+				document.getElementById("file").value = splitted[0];
+				Check_Progress(token, splitted[0], splitted[1]);
 			}
 		};
 	};
 	xhttp.open("GET", '/getProgress/'.concat(token), true);
 	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
+	xhttp.setRequestHeader("TOKEN", token);
+	xhttp.setRequestHeader("PREV", previous);
+	xhttp.setRequestHeader("WAIT", wait);
 	xhttp.send();
 }
+
+
+function Timeout_Function(url, dropzone, token, previous, wait){
+	var xhttp;
+	xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			document.getElementById("output").innerHTML = xhttp.responseText;
+			if (status == "..."){
+				document.getElementById("results").innerHTML = "";
+			} else {
+				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
+				document.getElementById("bw-images").innerHTML = '<button id="bw-bt" onclick=B_W_Download("/getImages/'.concat(token,'")>Download B&W Images</button>');
+			}
+			dropzone.removeAllFiles()
+		}else if (this.readyState == 4 && this.status == 408) {
+			console.log("Timeout Function Hit");
+			var resp_text = this.responseText;
+			var splitted = resp_text.split(",")
+			Timeout_Function(url, dropzone, token, splitted[0], splitted[1]);
+		};
+	};
+	xhttp.open("GET", url, true);
+	xhttp.setRequestHeader("Access-Control-Allow-Headers", "*");
+	xhttp.setRequestHeader("TOKEN", token);
+	xhttp.setRequestHeader("PREV", previous);
+	xhttp.setRequestHeader("WAIT", wait);
+	xhttp.send();
+}
+
+function B_W_Download(url){
+	document.getElementById("bw-bt").innerHTML = "Processing...";
+	var a = document.createElement("a");
+	document.body.appendChild(a);
+	a.style = "display:none";
+	a.href = url;
+	a.download = "B_W_images.zip";
+	a.click();
+	a.remove();
+	
+	var xhttp = new XMLHttpRequest();
+	xhttp.open('GET', url, true);
+	xhttp.onreadystatechange = function() {
+		if (this.readyState == 4 && this.status == 200) {
+			document.getElementById("bw-bt").innerHTML = "Download B&W Images";
+		}
+	}
+	xhttp.send();	
+}
+

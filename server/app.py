@@ -20,7 +20,8 @@ from Model import query_user, User
 from PIL import Image, UnidentifiedImageError
 from bs4 import BeautifulSoup
 from config import Config
-from flask import flash, Flask, json, redirect, render_template, request, Response, send_file, send_from_directory, url_for
+from flask import flash, Flask, json, redirect, render_template, request, Response, send_file, send_from_directory, \
+    url_for
 from flask_login import current_user, login_required, login_user, LoginManager, logout_user
 from flask_wtf import FlaskForm
 from keras import backend as K
@@ -35,18 +36,19 @@ from werkzeug.urls import url_parse
 from wtforms import SelectField, SubmitField
 from wtforms.validators import DataRequired, ValidationError
 
-
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar")  # TODO: Add 7z, Add rar
 IMG_TYPES = ['.jpg', '.png']
 PROGRESS = {}
+B_W_LIFETIME = 60 * 60 * 24 * 1  # [seconds] 60*60*24*1 = once a day
 UPL_LIFETIME = 60 * 60 * 24 * 1  # [seconds] 60*60*24*1 = once a day
-RES_LIFETIME = 60 * 60 * 24 * 7  # [seconds] 60*60*24*7 = once a week
+RES_LIFETIME = 60 * 60 * 24 * 1  # [seconds] 60*60*24*1 = once a day
 BG_INDEX = 0
 BG_SET_TIME = 0.0
 SH = os.sep
 RESULTS_FOLDER = str(APP_ROOT) + SH + "results" + SH
 UPLOADS_FOLDER = str(APP_ROOT) + SH + "uploads" + SH
+B_W_FOLDER = str(APP_ROOT) + SH + "black_and_white" + SH
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -66,6 +68,7 @@ def process_compressed(compressed_list):
     """
 
     folder_list = []
+
     for file in compressed_list:
         if file.endswith((".tar", ".tar.gz")):
             tf = tarfile.open(file)
@@ -92,6 +95,7 @@ def files_in_folder(target):
 
     file_list = os.listdir(target)
     result = []
+
     # Iterate over all the entries
     for entry in file_list:
         # Create full path
@@ -118,18 +122,24 @@ def normalise_images(files, target, token):
     """
 
     global PROGRESS
-
     image_values = []
+
     for file in files:
         name = file.replace(target, "")
         name = name.replace(".dir", "")
-        print(name)
+        path = name.split(SH)
         try:
             initial = Image.open(file)
             result = initial.resize((50, 50)).convert("L")
             pix_val = list(result.getdata())
             norm_val = [i / 255 for i in pix_val]
             image_values.append((norm_val, name + " <br>"))
+            subpath = B_W_FOLDER + token + SH
+            for i in range(len(path) - 1):
+                subpath = subpath + path[i] + SH
+                if not os.path.exists(subpath):
+                    os.mkdir(subpath)
+            result.save(B_W_FOLDER + token + SH + name)
             initial.close()
         except UnidentifiedImageError:
             print("Unidentified Image Error")
@@ -156,14 +166,14 @@ def bulk_classify(files, loaded_model, token):
     """
 
     global PROGRESS
-
     return_values = []
+
     for i in files:
         if i[1] != "":
             return_values.append((CNN(i[0], loaded_model), i[1]))
         else:
             return_values.append((i[0], ""))
-        #append token and filename to progress tracking dictionary
+        # append token and filename to progress tracking dictionary
         PROGRESS[token]['classify'] = PROGRESS[token]['classify'] + 1
     return return_values
 
@@ -208,10 +218,13 @@ def format_results(token, results):
     """
 
     html_string = ""
-    folders = {"orphaned": ""}
+    folders = {}
     left_path = str(RESULTS_FOLDER) + token + SH
     root_path = UPLOADS_FOLDER + token + SH
     results_path = RESULTS_FOLDER + token + SH + "results.txt"
+    timeout_path = RESULTS_FOLDER + token + SH + "timeout.txt"
+    done_path = RESULTS_FOLDER + token + SH + "done.txt"
+
     for i in results:
         for j in i:
             html_string = html_string + "".join(j).replace(root_path, "").replace(" <br>", "<br>")
@@ -228,6 +241,7 @@ def format_results(token, results):
     written = html_string.replace(" <br>", "\n")
     f.write(written)
     f.close()
+
     for i in splitted:
         files = str(i).split(",")
         if len(files) == 3:
@@ -244,7 +258,10 @@ def format_results(token, results):
                     init = folders[left[0]]
                     folders[left[0]] = init + i + "\n"
             else:
-                init = folders["orphaned"]
+                try:
+                    init = folders["orphaned"]
+                except:
+                    init = ""
                 folders["orphaned"] = init + i + "\n"
 
     keys = folders.keys()
@@ -259,6 +276,15 @@ def format_results(token, results):
             text = folders[key].replace(" <br>", "\n")
             f.write(text)
             f.close()
+    
+    f = open(timeout_path, "w+")
+    f.write(html_string)
+    f.close()
+    
+    f = open(done_path, "w+")
+    f.write(" ")
+    f.close()
+    
     return html_string[0:-4]
 
 
@@ -273,13 +299,19 @@ def check_folder():
     """
 
     now = time.time()
+
     for r in os.listdir(RESULTS_FOLDER):
         r_path = os.path.join(RESULTS_FOLDER, r)
         if os.stat(r_path).st_mtime < now - RES_LIFETIME:
             if os.path.isdir(r_path):
                 shutil.rmtree(r_path)
-        # else:
-        #     print("{}: {} > {}".format(r_path, os.stat(r_path).st_mtime, now - res_LIFETIME))
+             
+    for r in os.listdir(B_W_FOLDER):
+        r_path = os.path.join(B_W_FOLDER, r)
+        if os.stat(r_path).st_mtime < now - B_W_LIFETIME:
+            if os.path.isdir(r_path):
+                shutil.rmtree(r_path)
+
     try:
         now = time.time()
         for u in os.listdir(UPLOADS_FOLDER):
@@ -288,14 +320,11 @@ def check_folder():
             if u_create < now - UPL_LIFETIME:
                 if os.path.isdir(u_path):
                     shutil.rmtree(u_path)
-                    print(str(u_path) + " was deleted.")
-            # else:
-            #     print("{}: {} > {}".format(u_path, u_create, now - upl_LIFETIME))
     except:
         print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
 
 
-def process_images(target):
+def process_images(target, neural_network):
     """
     Takes in a file path to a folder, and processes the images in that folder. Essentially the main loop of the program.
     Returns a html string to show on the webpage.
@@ -320,32 +349,53 @@ def process_images(target):
     # Store the total number of files to be processed in the progress dict
     PROGRESS[token]['total'] = len(only_files)
 
-    # Moved this out of the CNN function because its expensive, so its better to only call once.
-    json_file = open(APP_ROOT + SH + 'ct3200.dir' + SH + 'model.json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    loaded_model = model_from_json(loaded_model_json)
-    # load weights into new model
-    loaded_model.load_weights(APP_ROOT + SH + "ct3200.dir" + SH + "model.h5")
+    if neural_network in ["shape"]:
+        # Moved this out of the CNN function because its expensive, so its better to only call once.
+        json_file = open(APP_ROOT + SH + 'ct3200.dir' + SH + 'model.json', 'r')
+        loaded_model_json = json_file.read()
+        json_file.close()
+        loaded_model = model_from_json(loaded_model_json)
+        # load weights into new model
+        loaded_model.load_weights(APP_ROOT + SH + "ct3200.dir" + SH + "model.h5") 
+    else:
+        # Whatever you need for the other nural network
+        pass
 
-    # normalises image files, gives an error if not a valid image type.
-    image_values = normalise_images(only_files, target, token)
+    if neural_network in ["shape"]:
+        # normalises image files, gives an error if not a valid image type.
+        image_values = normalise_images(only_files, target, token)
+    else:
+        # if normalise_images isn't suitable for your function
+        # image_values = ?
+        pass
 
-    # sends normalised images into the classifier
-    return_values = bulk_classify(image_values, loaded_model, token)
+    if neural_network in ["shape"]:
+        # sends normalised images into the classifier
+        return_values = bulk_classify(image_values, loaded_model, token)
+    else:
+        # Your version of bulk_classify that works with the other neural network
+        # return_values = ?
+        pass
 
-    # removes compressed files and folders after they've been extracted.
-    file_cleanup(target, compressed_list, folder_list)
+    if neural_network in ["shape"]:
+        # removes compressed files and folders after they've been extracted.
+        file_cleanup(target, compressed_list, folder_list)
+    else:
+        # if file_cleanup isn't suitable for your function
+        pass
 
-    # This formats results to be sent back and creates a text file
-    to_send = format_results(token, return_values)
+    if neural_network in ["shape"]:
+        # This formats results to be sent back and creates a text file
+        to_send = format_results(token, return_values)
+    else:
+        # if format_results isn't suitable for your function
+        to_send = ""
 
     t2 = datetime.datetime.now()
     tot_time = t2 - t1
     print("\nTime taken for this request: " + str(tot_time) + "\n")
 
     return to_send
-
 
 
 def CNN(lines, loaded_model):
@@ -410,12 +460,11 @@ def CNN(lines, loaded_model):
         if y_type == 2:
             galaxy_type = "Sp"
 
-        return_values.append("{0}, {1:.2f}%, ".format(galaxy_type, prob*100))
+        return_values.append("{0}, {1:.2f}%, ".format(galaxy_type, prob * 100))
 
     return return_values
 
 
-# @Josef please check following docstrings to see if they're correct
 def files_sorted_by_date(dir_path):
     """
     Returns files in directory sorted by creation date.
@@ -499,8 +548,8 @@ def choose_new_background(mode='latest', interval=0):
 
     if time.time() > BG_SET_TIME + interval:
         create_backgrounds_folder()
-        ###run updates to the background here
-        ###background downloaded and prepared for detection by css once every time interval
+        # run updates to the background here
+        # background downloaded and prepared for detection by css once every time interval
 
         bg_dir_location = str(APP_ROOT) + SH + "backgrounds" + SH
         bg_destination = str(APP_ROOT) + SH + "static" + SH + "img" + SH + "background.jpg"
@@ -610,8 +659,7 @@ def download_img_from_url(url):
 
 @login.user_loader
 def load_user(user_id):
-    """ Checks if user is logged in (?) """
-    # @Grey is this docstring correct?
+    """ Checks if user is logged in """
     if query_user(user_id) is not None:
         curr_user = User()
         curr_user.id = user_id
@@ -620,7 +668,7 @@ def load_user(user_id):
 
 @app.route('/')
 @app.route('/home')
-def example():
+def home():
     """ Homepage """
     return render_template('home.html')
 
@@ -655,6 +703,7 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+
 @app.route("/main", methods=['GET', 'POST'])
 @login_required
 def main():
@@ -676,19 +725,23 @@ def upload():
         os.mkdir(UPLOADS_FOLDER)
     if not os.path.exists(RESULTS_FOLDER):
         os.mkdir(RESULTS_FOLDER)
+    if not os.path.exists(B_W_FOLDER):
+        os.mkdir(B_W_FOLDER)
 
     new_token = ''.join(random.choice(string.ascii_letters) for i in range(12))
     upl_target = UPLOADS_FOLDER + new_token + SH
     res_target = RESULTS_FOLDER + new_token + SH
+    b_w_target = B_W_FOLDER + new_token + SH
 
     while os.path.exists(upl_target) or os.path.exists(res_target):
         new_token = ''.join(random.choice(string.ascii_letters) for i in range(12))
         upl_target = UPLOADS_FOLDER + new_token + SH
         res_target = RESULTS_FOLDER + new_token + SH
-
+        b_w_target = B_W_FOLDER + new_token + SH
 
     os.mkdir(upl_target)
     os.mkdir(res_target)
+    os.mkdir(b_w_target)
 
     rand_results = res_target + "results.txt"
     f = open(rand_results, "w")
@@ -720,13 +773,14 @@ def start_processing():
     """
 
     token = request.headers.get("TOKEN")
+    neural_network = request.headers.get("NETWORK").lower()
     check_folder()
     target = UPLOADS_FOLDER + token + SH
-
+    print(neural_network)
     # Make uploads folder if doesn't exist
     if not os.path.exists(target):
         os.mkdir(target)
-    return process_images(target)
+    return process_images(target, neural_network)
 
 
 @app.route('/getResults/<token>')
@@ -742,7 +796,7 @@ def return_file(token):
 
     left_path = RESULTS_FOLDER + token + SH
     files = [f for f in os.listdir(left_path)]
-    output_files = [i for i in files if i not in ['progress.txt', 'results.txt']]
+    output_files = [i for i in files if i not in ['progress.txt', 'results.txt', 'done.txt', 'timeout.txt']]
     if len(output_files) > 0 and output_files != ["images.txt"]:
         memory_file = io.BytesIO()
         with zipfile.ZipFile(memory_file, 'w') as zf:
@@ -770,6 +824,7 @@ def return_file(token):
 def getProgress(token):
     """
     Gets progress of request based on the token. Returns the percentage completeness.
+    If the progress hasn't incremented, wait for a period of time.
 
     :param token: Unique Identifier
     :type token: str
@@ -778,12 +833,85 @@ def getProgress(token):
 
     global PROGRESS
     percentage = 0
+    previous = request.headers.get("PREV")
+    wait = request.headers.get("WAIT")
+    waiting_time = wait
     if PROGRESS[token]['total'] > 0:
-        percentage = int(round((( 0.02*PROGRESS[token]['normalise'] + 0.98*PROGRESS[token]['classify'] ) / PROGRESS[token]['total']) * 100))
+        percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
+                                PROGRESS[token]['total']) * 100))
         if percentage > 100:
             percentage = 100
-    to_return = Response(str(percentage))
-    return to_return
+    if percentage == int(previous):
+        waiting_time = min(int(wait) + 1, 5)
+        time.sleep(waiting_time)
+    else:
+        waiting_time = -1
+    return str(percentage) + "," + str(waiting_time)
+
+
+@app.route('/timeout', methods=["GET"])
+def on_timeout():
+    """
+    Allows results to be collected even if Heroku times out. 
+    
+    :return 408 timeout OR results:
+    """
+    
+    token = request.headers.get("TOKEN")
+    previous = request.headers.get("PREV")
+    wait = request.headers.get("WAIT")
+    waiting_time = min(int(wait) + 1, 5)
+    
+    if os.path.exists(RESULTS_FOLDER + token + SH + "done.txt"):
+        file = RESULTS_FOLDER + token + SH + "results.txt"
+        with open(file) as f:
+            txt_content = f.read()
+        return txt_content
+    else:
+        if PROGRESS[token]['total'] > 0:
+            percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
+                                    PROGRESS[token]['total']) * 100))
+            if percentage > 100:
+                percentage = 100
+            if percentage == previous:
+                waiting_time = min(int(wait) + 1, 5)
+                time.sleep(waiting_time)
+            else:
+                waiting_time = -1
+        return Response(str(percentage) + "," + str(waiting_time), 408)
+
+
+@app.route('/getImages/<token>', methods=["GET"])
+def return_images(token):
+    """
+    Gets black and white image files based on the token, zips them and returns the zip file to the user,
+
+    :param token: Unique Identifier
+    :type token: str
+    :return file:
+    """
+    
+    left_path = B_W_FOLDER + token + SH
+    files = [f for f in os.listdir(left_path)]
+    output_files = [i for i in files if i not in ['progress.txt', 'results.txt', 'done.txt']]
+    print(output_files)
+    if len(output_files) > 0 and output_files != ["images.txt"]:
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w') as zf:
+            for root, dirs, files in os.walk(left_path):
+                for file in files:
+                    full_path = os.path.join(root, file)
+                    sub_path = full_path.replace(left_path, "")
+                    zf.write(full_path, sub_path)
+        memory_file.seek(0)
+        to_return = Response(
+            memory_file,
+            mimetype="application/zip",
+            headers={"Content-disposition":
+                         "attachment; filename=B_W_images.zip"})
+        return to_return
+    print("idk why we're here. this is an issue")
+    return 0
 
 
 if __name__ == "__main__":

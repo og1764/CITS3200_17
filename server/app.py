@@ -867,6 +867,7 @@ def on_timeout():
     :return 408 timeout OR results:
     """
     
+    global PROGRESS
     token = request.headers.get("TOKEN")
     previous = request.headers.get("PREV")
     wait = request.headers.get("WAIT")

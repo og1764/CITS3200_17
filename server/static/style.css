@@ -95,7 +95,7 @@ h1, h3, body, label, span, ::placeholder {
 }
 
 /* To place the two buttons (copy and download) next to each other */
-#results {
+#results, #bw-images {
     display: inline-block;
 }
 

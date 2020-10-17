@@ -60,9 +60,9 @@ def process_compressed(compressed_list):
     Takes an array of file paths to compressed folders, extracts them,
     and returns the file paths of the extracted folder in an array.
 
-    :param compressed_list: array of file paths
+    :param compressed_list: List of file paths
     :type compressed_list: list
-    :return array:
+    :return list:
     """
 
     folder_list = []
@@ -87,7 +87,7 @@ def files_in_folder(target):
 
     :param target: Uploads file path
     :type target: str
-    :return array:
+    :return list:
     """
 
     file_list = os.listdir(target)
@@ -110,11 +110,11 @@ def normalise_images(files, target, token):
     black and white and the value of each pixel is between 0 and 1. If the file isn't an image, it adds an error message
     that can be processed later. Returns an array of tuples, holding the normalised pixel values and the image name.
 
-    :param files: Array of files to be normalised
+    :param files: List of files to be normalised
     :type files: list
     :param target: Base file path
     :type target: str
-    :return array:
+    :return list:
     """
 
     global PROGRESS
@@ -149,10 +149,10 @@ def bulk_classify(files, loaded_model, token):
     """
     Takes an array of files and a model for the CNN, and classifies each file.
 
-    :param files: Array of files to classify
+    :param files: List of files to classify
     :type files: list
     :param loaded_model: Model loaded from disk
-    :return array:
+    :return list:
     """
 
     global PROGRESS
@@ -174,9 +174,9 @@ def file_cleanup(target, compressed, folders):
 
     :param target: Uploads file path
     :type target: str
-    :param compressed: Array of compressed files
+    :param compressed: List of compressed files
     :type compressed: list
-    :param folders: Array of folders
+    :param folders: List of folders
     :type folders: list
     :return None:
     """
@@ -202,7 +202,7 @@ def format_results(token, results):
 
     :param token: Identifier
     :type token: str
-    :param results: Array of tuples from bulk_classify
+    :param results: List of tuples from bulk_classify
     :type results: list
     :return str:
     """
@@ -349,8 +349,17 @@ def process_images(target):
 
 
 def CNN(lines, loaded_model):
-    # Initialising Variables
+    """
+    CNN to take in files and return our analysis of what type of galaxy it is.
 
+    :param lines: List of image values taken from bulk_classify
+    :type lines: list
+    :param loaded_model: The pre-generated CNN model
+    :type loaded_model: model
+    :return list:
+    """
+    
+    # Initialising Variables
     num_classes = 3
     n_mesh = 50
     i_bin = 0
@@ -413,7 +422,7 @@ def files_sorted_by_date(dir_path):
 
     :param dir_path: Path of folder
     :type dir_path: str
-    :return array:
+    :return list:
     """
 
     # all entries in the directory w/ stats

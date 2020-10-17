@@ -720,7 +720,9 @@ def upload():
 
     :return token:
     """
-
+    
+    global PROGRESS
+    
     if not os.path.exists(UPLOADS_FOLDER):
         os.mkdir(UPLOADS_FOLDER)
     if not os.path.exists(RESULTS_FOLDER):

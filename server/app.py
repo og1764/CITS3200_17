@@ -59,8 +59,8 @@ login.login_view = 'login'
 
 def process_compressed(compressed_list):
     """
-    Takes an array of file paths to compressed folders, extracts them,
-    and returns the file paths of the extracted folder in an array.
+    Takes a list of file paths to compressed folders, extracts them,
+    and returns the file paths of the extracted folder in a list.
 
     :param compressed_list: List of file paths
     :type compressed_list: list
@@ -86,7 +86,7 @@ def process_compressed(compressed_list):
 
 def files_in_folder(target):
     """
-    Takes a file path of a target directory and returns an array containing the path of each file in the target.
+    Takes a file path of a target directory and returns a list containing the path of each file in the target.
 
     :param target: Uploads file path
     :type target: str
@@ -110,9 +110,9 @@ def files_in_folder(target):
 
 def normalise_images(files, target, token):
     """
-    Takes an array of files and their base file path, and normalises the pixel value of images such that each image is
+    Takes a list of files and their base file path, and normalises the pixel value of images such that each image is
     black and white and the value of each pixel is between 0 and 1. If the file isn't an image, it adds an error message
-    that can be processed later. Returns an array of tuples, holding the normalised pixel values and the image name.
+    that can be processed later. Returns a list of tuples, holding the normalised pixel values and the image name.
 
     :param files: List of files to be normalised
     :type files: list
@@ -157,7 +157,7 @@ def normalise_images(files, target, token):
 
 def bulk_classify(files, loaded_model, token):
     """
-    Takes an array of files and a model for the CNN, and classifies each file.
+    Takes a list of files and a model for the CNN, and classifies each file.
 
     :param files: List of files to classify
     :type files: list
@@ -207,7 +207,7 @@ def file_cleanup(target, compressed, folders):
 
 def format_results(token, results):
     """
-    Takes a token and an array of results from the CNN, and parses those results. Generates a HTML string to be sent
+    Takes a token and a list of results from the CNN, and parses those results. Generates a HTML string to be sent
     to the webpage, and generates files to be returned to the user.
 
     :param token: Identifier
@@ -343,7 +343,7 @@ def process_images(target, neural_network):
     # Loop over and extract compressed folders
     folder_list = process_compressed(compressed_list)
 
-    # Get array of the files in a folder
+    # Get list of the files in a folder
     only_files = files_in_folder(target)
 
     # Store the total number of files to be processed in the progress dict
@@ -835,18 +835,28 @@ def getProgress(token):
     percentage = 0
     previous = request.headers.get("PREV")
     wait = request.headers.get("WAIT")
+    
+    if previous is None: previous = 0
+    if wait is None: wait = 0
+    
     waiting_time = wait
-    if PROGRESS[token]['total'] > 0:
-        percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
-                                PROGRESS[token]['total']) * 100))
-        if percentage > 100:
-            percentage = 100
-    if percentage == int(previous):
+    
+    try:
+        if PROGRESS[token]['total'] > 0:
+            percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
+                                    PROGRESS[token]['total']) * 100))
+            if percentage > 100:
+                percentage = 100
+        if percentage == int(previous):
+            waiting_time = min(int(wait) + 1, 5)
+            time.sleep(waiting_time)
+        else:
+            waiting_time = -1
+        return str(percentage) + "," + str(waiting_time)
+    except KeyError:
         waiting_time = min(int(wait) + 1, 5)
-        time.sleep(waiting_time)
-    else:
-        waiting_time = -1
-    return str(percentage) + "," + str(waiting_time)
+        return str(max(int(previous), percentage)) + "," + str(waiting_time)
+        
 
 
 @app.route('/timeout', methods=["GET"])
@@ -860,7 +870,12 @@ def on_timeout():
     token = request.headers.get("TOKEN")
     previous = request.headers.get("PREV")
     wait = request.headers.get("WAIT")
-    waiting_time = min(int(wait) + 1, 5)
+    
+    if previous is None: previous = 0
+    if wait is None: wait = 0
+    
+    waiting_time = wait
+    percentage = 0
     
     if os.path.exists(RESULTS_FOLDER + token + SH + "done.txt"):
         file = RESULTS_FOLDER + token + SH + "results.txt"
@@ -868,17 +883,20 @@ def on_timeout():
             txt_content = f.read()
         return txt_content
     else:
-        if PROGRESS[token]['total'] > 0:
-            percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
-                                    PROGRESS[token]['total']) * 100))
-            if percentage > 100:
-                percentage = 100
-            if percentage == previous:
-                waiting_time = min(int(wait) + 1, 5)
-                time.sleep(waiting_time)
-            else:
-                waiting_time = -1
-        return Response(str(percentage) + "," + str(waiting_time), 408)
+        try:
+            if PROGRESS[token]['total'] > 0:
+                percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) /
+                                        PROGRESS[token]['total']) * 100))
+                if percentage > 100:
+                    percentage = 100
+                if percentage == previous:
+                    waiting_time = min(int(wait) + 1, 5)
+                    time.sleep(waiting_time)
+                else:
+                    waiting_time = -1
+            return Response(str(percentage) + "," + str(waiting_time), 408)
+        except KeyError:
+            return Response(str(max(int(previous), percentage)) + "," + str(waiting_time), 408)
 
 
 @app.route('/getImages/<token>', methods=["GET"])

@@ -1,3 +1,7 @@
+/**
+   * Copy the classfied result.
+   * @param  {String} element  The classified infomation. 
+*/
 function Copy_To_Clipboard(element) {
   var $temp = $("<textarea>");
   var brRegex = /<br\s*[\/]?>/gi;
@@ -7,7 +11,14 @@ function Copy_To_Clipboard(element) {
   $temp.remove();
 }
 
-
+/**
+   * Getting the processed result from start_processing() that is implemented in app.py
+   * Outputting the result in the output zone.
+   * Dynamically create two button "Download" and "Download B&W Image" that allow user to download the classfied result as a text file and selected image files.
+   * @param  {String} url	Base url.
+   * @param	 {String} dropzone	
+   * @param	 {String} token
+*/
 function Get_Function(url, dropzone, token) {
 	var xhttp;
 	var options = document.getElementById("task").options;
@@ -60,7 +71,12 @@ var myDropzone = new Dropzone(".dropzone", {
   },
 });
 
-
+/**
+   * Gets progress of request based on the token.
+   * @param  {String} token
+   * @param	 {Int} previous
+   * @param	 {Int} wait
+*/
 function Check_Progress(token, previous, wait) {
 	var xhttp;
 	xhttp = new XMLHttpRequest();
@@ -84,7 +100,14 @@ function Check_Progress(token, previous, wait) {
 	xhttp.send();
 }
 
-
+/**
+   * Copy the classfied result.
+   * @param  {String} url
+   * @param	 {Object} dropzone
+   * @param	 {String} token
+   * @param	 {Int} previous
+   * @param	 {Int} wait
+*/
 function Timeout_Function(url, dropzone, token, previous, wait){
 	var xhttp;
 	xhttp = new XMLHttpRequest();
@@ -113,6 +136,9 @@ function Timeout_Function(url, dropzone, token, previous, wait){
 	xhttp.send();
 }
 
+/**
+   * Download the selected image file as .zip
+*/
 function B_W_Download(url){
 	document.getElementById("bw-bt").innerHTML = "Processing...";
 	var a = document.createElement("a");

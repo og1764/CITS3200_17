@@ -12,6 +12,18 @@
     --text-colour: lightgray;
 }
 
+/* Making the center of the webpage with the main content have a clear background */
+.col-md-6 {
+    background-color: var(--main-bg);
+    border-radius: 1rem;
+    margin-top: 15px;
+    padding-top: 2.5%;
+    padding-left: 5%;
+    padding-right: 5%;
+    padding-bottom: 2.5%;
+}
+
+/* Provides the styling and organising for dropzone elements */
 .dropzone {
     background-color: var(--subsection-bg);
     border: 2px dashed var(--border-colour);
@@ -38,6 +50,7 @@
     background-image: url('./img/background.jpg');
     background-size: cover;
 }
+
 
 /* Login styling */
 .login {
@@ -146,6 +159,10 @@ button, .btn {
 /* General styling */
 .nav-link, .btn:hover {
     color: var(--text-colour);
+}
+
+.nav-bar-expand {
+    background-color: rgba(0,0,0,0.15);
 }
 
 .active, .nav-link:hover {

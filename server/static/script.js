@@ -1,6 +1,6 @@
 /**
    * Copy the classfied result.
-   * @param  {String} element  The classified infomation. 
+   * @param  {String} 	element  	The classified infomation. 
 */
 function Copy_To_Clipboard(element) {
   var $temp = $("<textarea>");
@@ -14,10 +14,10 @@ function Copy_To_Clipboard(element) {
 /**
    * Getting the processed result from start_processing() that is implemented in app.py
    * Outputting the result in the output zone.
-   * Dynamically create two button "Download" and "Download B&W Image" that allow user to download the classfied result as a text file and selected image files.
-   * @param  {String} url	Base url.
-   * @param	 {String} dropzone	
-   * @param	 {String} token
+   * Dynamically create two buttons, "Download" and "Download B&W Image" that allows user to download the classfied result as a text file and processed image files.
+   * @param  {String} 	url			Base URL.
+   * @param	 {String} 	dropzone	Dropzone object.
+   * @param	 {String} 	token 		Unique Identifier.
 */
 function Get_Function(url, dropzone, token) {
 	var xhttp;
@@ -72,10 +72,10 @@ var myDropzone = new Dropzone(".dropzone", {
 });
 
 /**
-   * Gets progress of request based on the token.
-   * @param  {String} token
-   * @param	 {Int} previous
-   * @param	 {Int} wait
+   * Gets progress of request based on the token, and updates the progress bar.
+   * @param  {String} 	token		Unique Identifier.
+   * @param	 {Int} 		previous	Progress at previous request.
+   * @param	 {Int} 		wait		Time the previous request waited for.
 */
 function Check_Progress(token, previous, wait) {
 	var xhttp;
@@ -101,12 +101,12 @@ function Check_Progress(token, previous, wait) {
 }
 
 /**
-   * Copy the classfied result.
-   * @param  {String} url
-   * @param	 {Object} dropzone
-   * @param	 {String} token
-   * @param	 {Int} previous
-   * @param	 {Int} wait
+   * Gets result of request in case of a timeout. This is a backup function and should never get called.
+   * @param  {String} 	url			Timeout URL.
+   * @param	 {Object} 	dropzone	Dropzone object.
+   * @param	 {String} 	token		Unique Identifier.
+   * @param	 {Int} 		previous	Progress at previous request.
+   * @param	 {Int} 		wait		Time the previous request waited for.
 */
 function Timeout_Function(url, dropzone, token, previous, wait){
 	var xhttp;
@@ -137,7 +137,8 @@ function Timeout_Function(url, dropzone, token, previous, wait){
 }
 
 /**
-   * Download the selected image file as .zip
+   * Download the files that were processed for classification.
+   * @param  {String}	url 		URL to download images.
 */
 function B_W_Download(url){
 	document.getElementById("bw-bt").innerHTML = "Processing...";

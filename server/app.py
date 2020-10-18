@@ -348,7 +348,16 @@ def process_images(target, neural_network):
 
     # Get list of the files in a folder
     only_files = files_in_folder(target)
-
+    
+    # This is here because heroku kept giving us 500 errors for no reason
+    try:
+        testing = PROGRESS[token]['total']
+    except KeyError:
+        PROGRESS[token] = {}
+        PROGRESS[token]['total'] = 0
+        PROGRESS[token]['normalise'] = 0
+        PROGRESS[token]['classify'] = 0
+    
     # Store the total number of files to be processed in the progress dict
     PROGRESS[token]['total'] = len(only_files)
 

@@ -507,7 +507,7 @@ def center_crop():
         bottom = 2 * height / 3
 
         # Crop the image
-        im = im.crop((left, top, right, bottom))
+        # im = im.crop((left, top, right, bottom))
         im.save(location)
     except UnidentifiedImageError:
         print("image crop failed")

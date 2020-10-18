@@ -161,10 +161,6 @@ button, .btn {
     color: var(--text-colour);
 }
 
-.nav-bar-expand {
-    background-color: rgba(0,0,0,0.15);
-}
-
 .active, .nav-link:hover {
     color: var(--text-colour);
     background-color: var(--subsection-bg);

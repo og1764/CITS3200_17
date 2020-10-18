@@ -47,6 +47,12 @@
     text-decoration: underline;
 }
 
+/* Provides the updating image for all jumbotrons */
+.jumbotron {
+    background-image: url('./img/background.jpg');
+    background-size: cover;
+}
+
 /* Login styling */
 .login {
   width: 240px;

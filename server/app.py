@@ -701,7 +701,7 @@ def login():
 def logout():
     """ Logs a user out and redirects to login """
     logout_user()
-    return redirect(url_for('login'))
+    return redirect(url_for('home'))
 
 
 @app.route("/main", methods=['GET', 'POST'])

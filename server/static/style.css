@@ -12,6 +12,20 @@
     --text-colour: lightgray;
 }
 
+/* Making the center of the webpage with the main content have a clear background */
+.col-md-6 {
+    background-color: rgba(30, 76, 118, 0.9);
+    border-radius: 1rem;
+    margin-top: 15px;
+    padding-top: 2.5%;
+    padding-left: 5%;
+    padding-right: 5%;
+    padding-bottom: 2.5%;
+    flex: 0 0 75%;
+    max-width: 75%;
+}
+
+/* Provides the styling and organising for dropzone elements */
 .dropzone {
     background-color: var(--subsection-bg);
     border: 2px dashed var(--border-colour);
@@ -38,6 +52,7 @@
     background-image: url('./img/background.jpg');
     background-size: cover;
 }
+
 
 /* Login styling */
 .login {

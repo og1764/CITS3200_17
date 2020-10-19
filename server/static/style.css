@@ -49,8 +49,7 @@
 
 /* Provides the updating image for all jumbotrons */
 .jumbotron {
-    background-image: url('./img/background.jpg');
-    background-size: cover;
+    background-color: rgba(0,0,0,0.55);
 }
 
 /* Login styling */
@@ -166,7 +165,24 @@ p {
 }
 
 body {
-    background-color: var(--main-bg);
+    background-image: url('./img/background.jpg');
+    background-size: cover;
+}
+
+h1 {
+    text-align: center;
+}
+
+nav {
+    background-color: rgba(0,0,0,0.55);
+}
+.nav-link, .btn:hover {
+    color: var(--text-colour);
+}
+
+.active, .nav-link:hover {
+    color: var(--text-colour);
+    background-color: var(--subsection-bg);
 }
 
 /* Consistent stylisation for buttons */
@@ -174,16 +190,6 @@ button, .btn {
     border-radius: 8px;
     border-width: 2px;
     border-color: var(--text-colour);
-    color: var(--text-colour);
-    background-color: var(--subsection-bg);
-}
-
-/* General styling */
-.nav-link, .btn:hover {
-    color: var(--text-colour);
-}
-
-.active, .nav-link:hover {
     color: var(--text-colour);
     background-color: var(--subsection-bg);
 }

@@ -344,7 +344,7 @@ def process_images(target, neural_network):
     
     # This is here because heroku kept giving us 500 errors for no reason
     try:
-        testing = PROGRESS[token]['total']
+        testing_redo = PROGRESS[token]['total']
     except KeyError:
         PROGRESS[token] = {}
         PROGRESS[token]['total'] = 0

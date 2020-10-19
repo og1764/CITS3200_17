@@ -82,13 +82,27 @@ How data flows through the program:
     After the results from the POST request is received, the javascript changes the output box to "loading..." and it sends a GET request to '/start' via the Get_Function function, and it also starts the recursive function Check_Progress(token).
     Check_Progress runs along side the main GET request, and it polls it for its progress.
         Check_Progress sends a GET request to /getProgress/<token>, with PREV and WAIT headers. The PREV header is how complete the token was at the last getProgress request, and the WAIT header is how long the program waited at the last getProgress request.
-        The getProgress function in the python code checks the PROGRESS dictionary to check how complete the task is for the images associated with TOKEN. If the current percent completion is the same as PREV, WAIT the wait time gets incremented, to a maximum of 5 seconds. This is done to prevent an excess of requests being made to the server.
+        The /getProgress/<token> URL is received by the getProgress function in the python code, which checks the PROGRESS dictionary to check how complete the task is for the images associated with TOKEN. If the current percent completion is the same as PREV, WAIT the wait time gets incremented, to a maximum of 5 seconds. This is done to prevent an excess of requests being made to the server.
         The getProgress function also checks what state the program is it, and it returns the current percent completeness, the waiting time, and the current state in a comma-separated string.
         The Check_Progress function takes that return string, and splits it. If the percentage is at 100, it updates the progress bar and ends. Otherwise, it updates the progress bar, changes the label of the progress bar to reflect the current state, and calls Check_Progress again with the token and the results of the most recent request.
     
     The Get_Function is a GET request to /start that has the TOKEN and the selected neural network, NETWORK, as headers. TOKEN is the result of the initial POST request, and NETWORK is the option selected by the drop down menu. Currently, "Shape" is the only option.
-    This is the main body of the program.
-    Once the Get_Function receives a response, it generates a button to download the results as a text file, and a button to download the processed blka
+    This is the main body of the program. 
+        The /start URL is received by start_processing(), and it firstly calls the check_folder() function.
+            The check_folder function checks every folder in the Results, Black and White, and Uploads folders and checks if each folder has exceeded its lifetime. Folders that are too old are deleted. By default, the lifetimes are 1 day, but this is set by global variables at the top of the file and can be easily extended or reduced.
+        start_processing then checks if the uploads folder exists, and makes it if it doesn't, before calling process_images(target, neural_network), where target is the uploads\TOKEN\ folder, and neural_network is the NETWORK header.
+        
+    process_images(target, neural_network) # 380
+        Initially, this function sets a few variables, specifically TOKEN and PROGRESS, along with t1 which will be used to calculate the time taken for the request.
+        
+        After this, it creates a list of all the compressed files that were uploaded to the  uploads\TOKEN\ folder, so that they can be uncompressed.
+        The PROGRESS dictionary is updated, and then the compressed files are processed using the processed_compressed(compressed_list, token) function.
+            processed_compressed is a function that loops over the compressed list, and extracts .zip, .tar, and .tar.gz files. It does not recursively extract, so any compressed files that exist inside within the compressed folder will not get extracted. After extraction, the PROGRESS dictionary is updated and a list of created folders is returned.
+        After that, the files_in_folder(target) is called, and that loops over every file in the uploads\TOKEN\ folder and checks if the files are valid. The path of each valid file (ie, files that aren't compressed and don't start with ._ ) is added to a list which is then returned.
+            
+    
+    
+    Once the Get_Function receives a response, it displays the results in the output box,  generates a button to download the results as a text file, a button to download the processed images as a zip file, and it hides the progress bar.
     
     
     

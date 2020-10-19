@@ -580,7 +580,7 @@ def choose_new_background(mode='latest', interval=0):
                 file_list = files_sorted_by_date(bg_dir_location)
                 latest_file = file_list[0]
                 bg_location = bg_dir_location + latest_file[1]
-                print(latest_file)
+                # print(latest_file)
                 shutil.copy2(bg_location, bg_destination)
                 center_crop()
             except:
@@ -593,7 +593,7 @@ def choose_new_background(mode='latest', interval=0):
                 bg_index = (BG_INDEX + 1) % len(file_list)
                 next_file = file_list[bg_index]
                 bg_location = bg_dir_location + next_file[1]
-                print(next_file)
+                # print(next_file)
                 shutil.copy2(bg_location, bg_destination)
                 center_crop()
             except:
@@ -800,7 +800,6 @@ def start_processing():
     neural_network = request.headers.get("NETWORK").lower()
     check_folder()
     target = UPLOADS_FOLDER + token + SH
-    print(neural_network)
     # Make uploads folder if doesn't exist
     if not os.path.exists(target):
         os.mkdir(target)
@@ -867,7 +866,6 @@ def getProgress(token):
     current = ",Uploading..."
     
     try:
-        print(PROGRESS)
         if PROGRESS[token]['total'] > 0:
             percentage = int(round((((0.02 * PROGRESS[token]['extract'] 
                                         / PROGRESS[token]['extract_total'] )
@@ -892,6 +890,7 @@ def getProgress(token):
         
         return str(percentage) + "," + str(waiting_time) + current
     except KeyError:
+        print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
         waiting_time = min(int(wait) + 1, 5)
         return str(max(int(previous), percentage)) + "," + str(waiting_time) + current
         
@@ -947,6 +946,7 @@ def on_timeout():
                     current = ",Extracting... "
             return Response(str(percentage) + "," + str(waiting_time) + current, 408)
         except KeyError:
+            print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
             return Response(str(max(int(previous), percentage)) + "," + str(waiting_time) + current, 408)
 
 
@@ -963,7 +963,6 @@ def return_images(token):
     left_path = B_W_FOLDER + token + SH
     files = [f for f in os.listdir(left_path)]
     output_files = [i for i in files if i not in ['progress.txt', 'results.txt', 'done.txt']]
-    print(output_files)
     if len(output_files) > 0 and output_files != ["images.txt"]:
         memory_file = io.BytesIO()
         with zipfile.ZipFile(memory_file, 'w') as zf:

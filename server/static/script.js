@@ -63,8 +63,6 @@ var myDropzone = new Dropzone(".dropzone", {
     url: "/upload",
     init: function() {
         this.on("successmultiple", function(data, status) {
-            document.getElementById("bw-images").innerHTML = '<a></a>';
-            document.getElementById("output").innerHTML = "Loading...";
             Get_Function('/start', this, status);
             Check_Progress(status, "-1", "0");
         });
@@ -169,5 +167,7 @@ function B_W_Download(url){
 function to_upload(){
     document.getElementById("progress-container").style.display = "block";
     document.getElementById("prog-lbl").innerHTML = "Uploading... ";
+    document.getElementById("bw-images").innerHTML = '<a></a>';
+    document.getElementById("output").innerHTML = "Loading...";
     Dropzone.forElement('.dropzone').processQueue()
 }

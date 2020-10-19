@@ -15,6 +15,7 @@ import tarfile
 import time
 import urllib.request
 import zipfile
+import json
 from Form import LoginForm
 from Model import query_user, User
 from PIL import Image, UnidentifiedImageError
@@ -66,7 +67,7 @@ def process_compressed(compressed_list, token):
     :type compressed_list: list
     :return list:
     """
-    global PROGRESS
+    #global PROGRESS
 
     folder_list = []
 
@@ -82,7 +83,7 @@ def process_compressed(compressed_list, token):
                 os.mkdir(file + ".dir" + SH)
                 folder_list.append(file + ".dir" + SH)
                 zf.extractall(file + ".dir" + SH)
-        PROGRESS[token]['extract'] = PROGRESS[token]['extract'] + 1
+        #PROGRESS[token]['extract'] = PROGRESS[token]['extract'] + 1
     return folder_list
 
 
@@ -350,15 +351,15 @@ def process_images(target, neural_network):
         PROGRESS[token]['total'] = 0
         PROGRESS[token]['normalise'] = 0
         PROGRESS[token]['classify'] = 0
-        PROGRESS[token]['extract'] = 0
-        PROGRESS[token]['extract_total'] = 0
+        #PROGRESS[token]['extract'] = 0
+        #PROGRESS[token]['extract_total'] = 0
     
-    PROGRESS[token]['extract_total'] = len(compressed_list)
+    #PROGRESS[token]['extract_total'] = len(compressed_list)
     
-    if PROGRESS[token]['extract_total'] == 0:
-        # This is so we don't have a divide by 0 error later.
-        PROGRESS[token]['extract'] = 1
-        PROGRESS[token]['extract_total'] = 1
+    #if PROGRESS[token]['extract_total'] == 0:
+    #    # This is so we don't have a divide by 0 error later.
+    #    PROGRESS[token]['extract'] = 1
+    #    PROGRESS[token]['extract_total'] = 1
     
     # Loop over and extract compressed folders    
     folder_list = process_compressed(compressed_list, token)
@@ -780,8 +781,8 @@ def upload():
     PROGRESS[new_token]['total'] = 0
     PROGRESS[new_token]['normalise'] = 0
     PROGRESS[new_token]['classify'] = 0
-    PROGRESS[new_token]['extract'] = 0
-    PROGRESS[new_token]['extract_total'] = 0
+    #PROGRESS[new_token]['extract'] = 0
+    #PROGRESS[new_token]['extract_total'] = 0
 
     # 202 Accepted
     return (new_token, 202)
@@ -869,11 +870,8 @@ def getProgress(token):
     try:
         print(PROGRESS)
         if PROGRESS[token]['total'] > 0:
-            percentage = int(round((((0.02 * PROGRESS[token]['extract'] 
-                                        / PROGRESS[token]['extract_total'] )
-                                    + (0.02 * PROGRESS[token]['normalise'] + 0.96 * PROGRESS[token]['classify']) 
-                                        / PROGRESS[token]['total']) ) 
-                                    * 100))
+            percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) 
+                                        / PROGRESS[token]['total']) * 100))
             if percentage > 100:
                 percentage = 100
         if percentage == int(previous):
@@ -882,13 +880,13 @@ def getProgress(token):
         else:
             waiting_time = -1
             
-        if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
-            if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
-                current = ",Classifying... "
-            else:
-                current = ",Processing Images... "
+        #if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
+        if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
+            current = ",Classifying... "
         else:
-            current = ",Extracting... "
+            current = ",Processing Images... "
+        #else:
+        #    current = ",Extracting... "
         
         return str(percentage) + "," + str(waiting_time) + current
     except KeyError:
@@ -925,11 +923,8 @@ def on_timeout():
     else:
         try:
             if PROGRESS[token]['total'] > 0:
-                percentage = int(round((((0.02 * PROGRESS[token]['extract'] 
-                                        / PROGRESS[token]['extract_total'] )
-                                    + (0.02 * PROGRESS[token]['normalise'] + 0.96 * PROGRESS[token]['classify']) 
-                                        / PROGRESS[token]['total']) ) 
-                                    * 100))
+                percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) 
+                                        / PROGRESS[token]['total']) * 100))
                 if percentage > 100:
                     percentage = 100
                 if percentage == previous:
@@ -938,13 +933,13 @@ def on_timeout():
                 else:
                     waiting_time = -1
                 
-                if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
-                    if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
-                        current = ",Classifying... "
-                    else:
-                        current = ",Processing Images... "
+                #if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
+                if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
+                    current = ",Classifying... "
                 else:
-                    current = ",Extracting... "
+                    current = ",Processing Images... "
+                #else:
+                #    current = ",Extracting... "
             return Response(str(percentage) + "," + str(waiting_time) + current, 408)
         except KeyError:
             return Response(str(max(int(previous), percentage)) + "," + str(waiting_time) + current, 408)

@@ -862,7 +862,7 @@ def getProgress(token):
     
     if previous is None: previous = 0
     if wait is None: wait = 0
-    if current is None: current = ",Uploading..."
+    if current is None: current = "Uploading..."
     waiting_time = wait
     
     try:
@@ -883,17 +883,17 @@ def getProgress(token):
             
         if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
             if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
-                current = ",Classifying... "
+                current = "Classifying... "
             else:
-                current = ",Processing Images... "
+                current = "Processing Images... "
         else:
-            current = ",Extracting... "
-        return str(percentage) + "," + str(waiting_time) + current
+            current = "Extracting... "
+        return str(percentage) + "," + str(waiting_time )+ "," + current
     except KeyError:
         print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
         print(PROGRESS)
         waiting_time = min(int(wait) + 1, 5)
-        return str(max(int(previous), percentage)) + "," + str(waiting_time) + current
+        return str(max(int(previous), percentage)) + "," + str(waiting_time) + "," + current
         
 
 
@@ -915,7 +915,7 @@ def on_timeout():
     
     waiting_time = wait
     percentage = 0
-    current = ",Uploading..."
+    current = "Uploading..."
     
     if os.path.exists(RESULTS_FOLDER + token + SH + "done.txt"):
         file = RESULTS_FOLDER + token + SH + "results.txt"
@@ -941,16 +941,16 @@ def on_timeout():
                 
                 if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
                     if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
-                        current = ",Classifying... "
+                        current = "Classifying... "
                     else:
-                        current = ",Processing Images... "
+                        current = "Processing Images... "
                 else:
-                    current = ",Extracting... "
-            return Response(str(percentage) + "," + str(waiting_time) + current, 408)
+                    current = "Extracting... "
+            return Response(str(percentage) + "," + str(waiting_time) + "," + current, 408)
         except KeyError:
             print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
             print(PROGRESS)
-            return Response(str(max(int(previous), percentage)) + "," + str(waiting_time) + current, 408)
+            return Response(str(max(int(previous), percentage)) + "," + str(waiting_time) + "," + current, 408)
 
 
 @app.route('/getImages/<token>', methods=["GET"])

@@ -1,6 +1,6 @@
 /**
     * Copy the classfied result.
-    * @param    {String}    element     The classified infomation. 
+    * @param    {String}    element     The classified infomation.
 */
 function Copy_To_Clipboard(element) {
     var $temp = $("<textarea>");
@@ -53,7 +53,7 @@ Dropzone.autoDiscover = false;
 
 
 var myDropzone = new Dropzone(".dropzone", {
-    acceptedFiles: ".jpg,.jpeg,.png,.gif,.zip,.tar,.tar.gz",
+    acceptedFiles: "image/*,.zip,.tar,.tar.gz",
     autoProcessQueue: false,
     addRemoveLinks: true,
     maxFiles: 10,
@@ -149,7 +149,7 @@ function B_W_Download(url){
     a.download = "B_W_images.zip";
     a.click();
     a.remove();
-    
+
     var xhttp = new XMLHttpRequest();
     xhttp.open('GET', url, true);
     xhttp.onreadystatechange = function() {
@@ -157,7 +157,7 @@ function B_W_Download(url){
             document.getElementById("bw-bt").innerHTML = "Download B&W Images";
         }
     }
-    xhttp.send();   
+    xhttp.send();
 }
 
 

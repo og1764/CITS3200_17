@@ -341,14 +341,31 @@ def process_images(target, neural_network):
     global PROGRESS
 
     compressed_list = [target + filename for filename in os.listdir(target) if filename.endswith(VALID_COMPRESSED)]
-
-    # Loop over and extract compressed folders
+    
+    # This is here because heroku kept giving us 500 errors for no reason
+    try:
+        testing = PROGRESS[token]['total']
+    except KeyError:
+        PROGRESS[token] = {}
+        PROGRESS[token]['total'] = 0
+        PROGRESS[token]['normalise'] = 0
+        PROGRESS[token]['classify'] = 0
+        PROGRESS[token]['extract'] = 0
+        PROGRESS[token]['extract_total'] = 0
+    
     PROGRESS[token]['extract_total'] = len(compressed_list)
+    
+    if PROGRESS[token]['extract_total'] == 0:
+        # This is so we don't have a divide by 0 error later.
+        PROGRESS[token]['extract'] = 1
+        PROGRESS[token]['extract_total'] = 1
+    
+    # Loop over and extract compressed folders    
     folder_list = process_compressed(compressed_list, token)
 
     # Get list of the files in a folder
     only_files = files_in_folder(target)
-
+    
     # Store the total number of files to be processed in the progress dict
     PROGRESS[token]['total'] = len(only_files)
 
@@ -764,6 +781,7 @@ def upload():
     PROGRESS[new_token]['normalise'] = 0
     PROGRESS[new_token]['classify'] = 0
     PROGRESS[new_token]['extract'] = 0
+    PROGRESS[new_token]['extract_total'] = 0
 
     # 202 Accepted
     return (new_token, 202)
@@ -846,14 +864,16 @@ def getProgress(token):
     if wait is None: wait = 0
     
     waiting_time = wait
+    current = ",Uploading..."
     
     try:
         print(PROGRESS)
         if PROGRESS[token]['total'] > 0:
-            percentage = int(round((((0.02 * PROGRESS[token]['extract'] /
-                                    PROGRESS[token]['extract_total'] )
-                                    + (0.02 * PROGRESS[token]['normalise'] + 0.96 * PROGRESS[token]['classify']) /
-                                    PROGRESS[token]['total']) ) * 100))
+            percentage = int(round((((0.02 * PROGRESS[token]['extract'] 
+                                        / PROGRESS[token]['extract_total'] )
+                                    + (0.02 * PROGRESS[token]['normalise'] + 0.96 * PROGRESS[token]['classify']) 
+                                        / PROGRESS[token]['total']) ) 
+                                    * 100))
             if percentage > 100:
                 percentage = 100
         if percentage == int(previous):
@@ -861,10 +881,19 @@ def getProgress(token):
             time.sleep(waiting_time)
         else:
             waiting_time = -1
-        return str(percentage) + "," + str(waiting_time)
+            
+        if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
+            if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
+                current = ",Classifying... "
+            else:
+                current = ",Processing Images... "
+        else:
+            current = ",Extracting... "
+        
+        return str(percentage) + "," + str(waiting_time) + current
     except KeyError:
         waiting_time = min(int(wait) + 1, 5)
-        return str(max(int(previous), percentage)) + "," + str(waiting_time)
+        return str(max(int(previous), percentage)) + "," + str(waiting_time) + current
         
 
 
@@ -886,6 +915,7 @@ def on_timeout():
     
     waiting_time = wait
     percentage = 0
+    current = ",Uploading..."
     
     if os.path.exists(RESULTS_FOLDER + token + SH + "done.txt"):
         file = RESULTS_FOLDER + token + SH + "results.txt"
@@ -895,10 +925,11 @@ def on_timeout():
     else:
         try:
             if PROGRESS[token]['total'] > 0:
-                percentage = int(round((((0.02 * PROGRESS[token]['extract'] /
-                                    PROGRESS[token]['extract_total'] )
-                                    + (0.02 * PROGRESS[token]['normalise'] + 0.96 * PROGRESS[token]['classify']) /
-                                    PROGRESS[token]['total']) ) * 100))
+                percentage = int(round((((0.02 * PROGRESS[token]['extract'] 
+                                        / PROGRESS[token]['extract_total'] )
+                                    + (0.02 * PROGRESS[token]['normalise'] + 0.96 * PROGRESS[token]['classify']) 
+                                        / PROGRESS[token]['total']) ) 
+                                    * 100))
                 if percentage > 100:
                     percentage = 100
                 if percentage == previous:
@@ -906,9 +937,17 @@ def on_timeout():
                     time.sleep(waiting_time)
                 else:
                     waiting_time = -1
-            return Response(str(percentage) + "," + str(waiting_time), 408)
+                
+                if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
+                    if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
+                        current = ",Classifying... "
+                    else:
+                        current = ",Processing Images... "
+                else:
+                    current = ",Extracting... "
+            return Response(str(percentage) + "," + str(waiting_time) + current, 408)
         except KeyError:
-            return Response(str(max(int(previous), percentage)) + "," + str(waiting_time), 408)
+            return Response(str(max(int(previous), percentage)) + "," + str(waiting_time) + current, 408)
 
 
 @app.route('/getImages/<token>', methods=["GET"])

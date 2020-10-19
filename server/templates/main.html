@@ -1,67 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Classification Tool</title>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
-  integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-  <link rel="stylesheet" href="../static/dropzone.css">
-  <link href="../static/style.css" rel="stylesheet" type="text/css" media="all">
-  <script src="../static/dropzone.js"></script>
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <title>Classification Tool</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link rel="stylesheet" href="../static/dropzone.css">
+    <link href="../static/style.css" rel="stylesheet" type="text/css" media="all">
+    <script src="../static/dropzone.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 </head>
 
 <body style="background-image: url('./static/img/background.jpg'); background-size: cover;">
-  <nav class="navbar navbar-expand" style="background-color: rgba(0,0,0,0.55);">
-    <ul class="navbar-nav mr-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="{{ url_for('main') }}">Tool</a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('manual') }}">User Manual</a>
-      </li>
-    </ul>
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item">
-        <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
-      <li>
-    </ul>
-  </nav>
-  <div class="container-fluid">
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <h1 style="text-align:center;">Galaxy Classification Tool</h1>
-        <form class="mb-5">
-          <div class="form-group">
-            <label for="task">Select Task:</label>
-            <select id="task" class="form-control">
-              <option value="shape">Shape</option>
-			  <!--<option value="TEST">Testing</option>-->
-            </select>
-          </div>
-        </form>
-        <form action="/upload" class="dropzone" id="my-dropzone">
-          <div class="dz-message">Drag and drop your file(s) here, or click to browse files on your device.</div>
-        </form>
-        <br>
-        <button class="mb-5" id="classify" onclick="Dropzone.forElement('.dropzone').processQueue()">Upload and Classify!</button>
-        <p>Output:</p>
-        <button id="copybutton" onclick="Copy_To_Clipboard('#output')">Copy result to clipboard</button>
-        <div class="divider"></div>
-        <p id="results"></p>
-		    <div class="divider"></div>
-		    <p id="bw-images"></p>
-        <div class="card mb-5">
-          <div class="card-body">
-            <label for="file">Downloading progress:</label>
-            <progress id="file" value="0" max="100"> 0% </progress>
-            <p id="output">...</p>
-          </div>
+    <nav class="navbar navbar-expand" style="background-color: rgba(0,0,0,0.55);">
+        <ul class="navbar-nav mr-auto">
+            <li class="nav-item active">
+                <a class="nav-link" href="{{ url_for('main') }}">Tool</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('manual') }}">User Manual</a>
+            </li>
+        </ul>
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+            <li>
+        </ul>
+    </nav>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <h1 style="text-align:center;">Galaxy Classification Tool</h1>
+                <form class="mb-5">
+                    <div class="form-group">
+                        <label for="task">Select Task:</label>
+                        <select id="task" class="form-control">
+                            <option value="shape">Shape</option>
+                            <!--<option value="TEST">Testing</option>-->
+                        </select>
+                    </div>
+                </form>
+                <form action="/upload" class="dropzone" id="my-dropzone">
+                    <div class="dz-message">Drag and drop your file(s) here, or click to browse files on your device.</div>
+                </form>
+                <br>
+                <button class="mb-5" id="classify" onclick="to_upload()">Upload and Classify!</button>
+                <p>Output:</p>
+                <button id="copybutton" onclick="Copy_To_Clipboard('#output')">Copy result to clipboard</button>
+                <div class="divider"></div>
+                <p id="results"></p>
+                    <div class="divider"></div>
+                    <p id="bw-images"></p>
+                <div class="card mb-5">
+                    <div class="card-body">
+                        <p id="progress-container" style="display: none">
+                            <label for="file" id="prog-lbl">Downloading progress:</label>
+                            <progress id="file" value="0" max="100"> 0% </progress>
+                        </p>
+                        <p id="output">...</p>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-  <script src="../static/script.js"></script>
+    <script src="../static/script.js"></script>
 </body>
 </html>

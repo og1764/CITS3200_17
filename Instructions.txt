@@ -1,37 +1,17 @@
 Client Instructions
 
-How the website works wholistically:
-	Website is built based on the HTML, CSS, and JavaScript in the static folder.
-	(
-		Areas of the website that I havent written needs to be summarised by others
-	)
-	The user interacts with a DropZone element (JavaScript) that uploads the file on the click of a button.
-	The upload is done through a POST request to the server (URL is /upload)
-	/upload is linked to the upload() function, which does a series of actions:
-		It creates folders on the server if they don't already exist.
-		It creates a unique 12 character identifier (TOKEN) that is used to keep track of a users files
-		It creates folders called TOKEN on the server, and the files that were uploaded are saved to that location
-		It returns TOKEN to the webpage.
-	Immediately after the TOKEN is received, it changes the contents of the results area to "Loading..."
-	It then sends a GET request to the server to ask the server to start classifying the images (URL is /start), with the TOKEN in a header
-	/start is linked to the start_processing() function which does a series of actions:
-		It checks all files that have been previously downloaded, and removes files that have been on the server for a significant period of time
-			This is so that data isn't being needlessly stored on the server
-		It then calls the process_images function, which is the bulk of the webpage.
+Changing the username and password:
+	Change the username from admin to whatever you'd like on line 7 of Model.py
+	Change the password from password to whatever you'd like on line 8 of Model.py
 	
-	process_images(target) is effectively the main method if the code were to be run offline.
-		Target is the location of the uploaded images.
-		Firstly, it creates a list of compressed folders, and then extracts them.
-		It then loops over all of the uploads folder and puts the path of each file in a list so they can be easily processed.
+	After making these changes, make sure that you commit it to the GitHub so that heroku can re-build with the new credentials.
+
+	
+Changing the contact details:
+	If you don't want your email address on the webpage, please just remove the entire <a> ... </a> on line 55 of log.html, and just replace it with Kenji.
+	After making these changes, make sure that you commit it to the GitHub so that heroku can re-build with the new HTML.
 		
-	TO DO - Fill this out
-	
-	
-	
-	
-	
-	
-	
+
 What the client needs to change to add other functionality:
 	
 	normalise_images(files, target)
@@ -39,14 +19,16 @@ What the client needs to change to add other functionality:
 		It processes each file. If it's an image, it normalises the image such that the image is in black and white and the pixel values are between 0 and 1.
 		It returns an array of tuples, where the first element is the array of normalised pixel values, and the second element is the name of the file.
 		IF the file can't be processed as an image, either because its an unsupported image or not an image at all, the first element of the tuple an error message, and the second element is left as an empty string.
+		Regardless, it updates the progress dictionary.
 
 
-	bulk_classify(files, loaded_model)
+	bulk_classify(files, loaded_model, token)
 		This function takes in the output of normalise_images, and the model that has been loaded from file for the neural network.
 			ie, you could call bulk_classify(normalise_images(files, target), loaded_model)
 		It changes the array of tuples that was output from normalise_images. 
 			For each tuple in that array, if the first element is pixel values, it classifies them and changes the first element of the tuple to that classification
 			If the first element is just the error message, then nothing changes.
+			Regardless, it updates the progress dictionary.
 		
 
 	format_results(token, results)
@@ -60,7 +42,7 @@ What the client needs to change to add other functionality:
 Additional Functionality
 
 	Steps required to add another neural network:
-		Edit main.html and add an option to the "task" form-group (see example on line 42)
+		Edit main.html and add an option to the "task" form-group (see example on line 40)
 		Edit app.py in the following ways:
 			Add your neural network as a function
 			
@@ -83,5 +65,11 @@ Additional Functionality
 			
 			In addition, the following will need to be kept in mind:
 				to_send is a HTML string that will be returned to the webpage.
+				All zip files are created in memory. This may cause issues with large amounts of images.
+				The maximum file size is 10MB. If this is insufficient, it can be changed on line 59 of script.js
 				
-		
+
+How data flows through the program:
+	This section is more to help with your general understanding of how the main body of code works.
+	
+	<NOTE: I'm going to complete this tomorrow after work. If somebody else would like to complete it, then please do. >

@@ -46,13 +46,16 @@ Additional Functionality
 		Edit app.py in the following ways:
 			Add your neural network as a function
 			
-			Change the first else statement in process_images (at around line 362) to ```elif neural_network in [{}]: ``` where {} is the set of options in the task group that this applies to
+			Change the first else statement in process_images (at around line 362) to:
+                elif neural_network in [{}]:
+            where {} is the set of options in the task group that this applies to
 			Take out the part where you load the model from a file, and paste it into the elif
 			
 			For each if statement, you need to assess:
 				Are the functions that already exist adequate for this new function?
 				If yes:
-					Add the option from the task group into the array in the if statement, eg ```if neural_network in ["shape", "test"]:```
+					Add the option from the task group into the array in the if statement, eg
+                        if neural_network in ["shape", "test"]:
 				Otherwise:
 					Change the else to an elif of a similar structure to the if statement
 					Define a new function that does the same thing as the existing functions, but slightly modified for the new network
@@ -72,4 +75,46 @@ Additional Functionality
 How data flows through the program:
 	This section is more to help with your general understanding of how the main body of code works.
 	
+    When a user clicks on the Upload and Classify button, it calls the to_upload() javascript function. This starts the file upload through Dropzone.js, and enables the progress bar. It sends a POST request to /upload .
+    When the /upload URL gets called, it creates required folders on the server, and generates a random string of 12 characters to be used as a unique identifier, or a token. It then saves the files to the "uploads/<token>" folder, and initialises the Progress dictionary for use later.
+    The response to the POST request is the generated TOKEN and the HTTP code 202: Accepted.
+    
+    After the results from the POST request is received, the javascript changes the output box to "loading..." and it sends a GET request to '/start' via the Get_Function function, and it also starts the recursive function Check_Progress(token).
+    Check_Progress runs along side the main GET request, and it polls it for its progress.
+        Check_Progress sends a GET request to /getProgress/<token>, with PREV and WAIT headers. The PREV header is how complete the token was at the last getProgress request, and the WAIT header is how long the program waited at the last getProgress request.
+        The getProgress function in the python code checks the PROGRESS dictionary to check how complete the task is for the images associated with TOKEN. If the current percent completion is the same as PREV, WAIT the wait time gets incremented, to a maximum of 5 seconds. This is done to prevent an excess of requests being made to the server.
+        The getProgress function also checks what state the program is it, and it returns the current percent completeness, the waiting time, and the current state in a comma-separated string.
+        The Check_Progress function takes that return string, and splits it. If the percentage is at 100, it updates the progress bar and ends. Otherwise, it updates the progress bar, changes the label of the progress bar to reflect the current state, and calls Check_Progress again with the token and the results of the most recent request.
+    
+    The Get_Function is a GET request to /start that has the TOKEN and the selected neural network, NETWORK, as headers. TOKEN is the result of the initial POST request, and NETWORK is the option selected by the drop down menu. Currently, "Shape" is the only option.
+    This is the main body of the program.
+    Once the Get_Function receives a response, it generates a button to download the results as a text file, and a button to download the processed blka
+    
+    
+    
+    
+    
+    
 	<NOTE: I'm going to complete this tomorrow after work. If somebody else would like to complete it, then please do. >
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

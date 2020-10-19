@@ -33,6 +33,7 @@ function Get_Function(url, dropzone, token) {
 			} else {
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 				document.getElementById("bw-images").innerHTML = '<button id="bw-bt" onclick=B_W_Download("/getImages/'.concat(token,'")>Download B&W Images</button>');
+				document.getElementById("progress_container").style.display = "none";
 			}
 			dropzone.removeAllFiles()
 		}else if (this.status == 408){
@@ -64,7 +65,6 @@ var myDropzone = new Dropzone(".dropzone", {
 	this.on("successmultiple", function(data, status) {
 		document.getElementById("bw-images").innerHTML = '<a></a>';
 		document.getElementById("output").innerHTML = "Loading...";
-		document.getElementById("file").removeAttribute("hidden");
 		Get_Function('/start', this, status);
 		Check_Progress(status, "-1", "0");
 	});
@@ -119,6 +119,7 @@ function Timeout_Function(url, dropzone, token, previous, wait){
 			} else {
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 				document.getElementById("bw-images").innerHTML = '<button id="bw-bt" onclick=B_W_Download("/getImages/'.concat(token,'")>Download B&W Images</button>');
+				document.getElementById("progress_container").style.display = "none";
 			}
 			dropzone.removeAllFiles()
 		}else if (this.readyState == 4 && this.status == 408) {
@@ -160,3 +161,7 @@ function B_W_Download(url){
 	xhttp.send();	
 }
 
+function to_upload(){
+	document.getElementById("progress_container").style.display = "block";
+	Dropzone.forElement('.dropzone').processQueue()
+}

@@ -45,7 +45,7 @@
           <div class="dz-message">Drag and drop your file(s) here, or click to browse files on your device.</div>
         </form>
         <br>
-        <button class="mb-5" id="classify" onclick="Dropzone.forElement('.dropzone').processQueue()">Upload and Classify!</button>
+        <button class="mb-5" id="classify" onclick="to_upload()">Upload and Classify!</button>
         <p>Output:</p>
         <button id="copybutton" onclick="Copy_To_Clipboard('#output')">Copy result to clipboard</button>
         <div class="divider"></div>
@@ -54,9 +54,11 @@
 		    <p id="bw-images"></p>
         <div class="card mb-5">
           <div class="card-body">
-            <label for="file">Downloading progress:</label>
-            <progress id="file" value="0" max="100"> 0% </progress>
-            <p id="output">...</p>
+			<p id="progress_container" style="display: none">
+				<label for="file">Downloading progress:</label>
+				<progress id="file" value="0" max="100"> 0% </progress>
+            </p>
+			<p id="output">...</p>
           </div>
         </div>
       </div>

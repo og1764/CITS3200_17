@@ -365,7 +365,7 @@ def process_images(target, neural_network):
 
     # Get list of the files in a folder
     only_files = files_in_folder(target)
-    
+    print("TOTAL = " + str(len(only_files)))
     # Store the total number of files to be processed in the progress dict
     PROGRESS[token]['total'] = len(only_files)
 
@@ -866,6 +866,7 @@ def getProgress(token):
     waiting_time = wait
     
     try:
+        print(PROGRESS)
         if PROGRESS[token]['total'] > 0:
             percentage = int(round((((0.02 * PROGRESS[token]['extract'] 
                                         / PROGRESS[token]['extract_total'] )
@@ -887,7 +888,6 @@ def getProgress(token):
                 current = ",Processing Images... "
         else:
             current = ",Extracting... "
-        
         return str(percentage) + "," + str(waiting_time) + current
     except KeyError:
         print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
@@ -924,6 +924,7 @@ def on_timeout():
         return txt_content
     else:
         try:
+            print(PROGRESS)
             if PROGRESS[token]['total'] > 0:
                 percentage = int(round((((0.02 * PROGRESS[token]['extract'] 
                                         / PROGRESS[token]['extract_total'] )

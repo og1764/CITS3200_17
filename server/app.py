@@ -15,7 +15,6 @@ import tarfile
 import time
 import urllib.request
 import zipfile
-import json
 from Form import LoginForm
 from Model import query_user, User
 from PIL import Image, UnidentifiedImageError
@@ -40,7 +39,7 @@ from wtforms.validators import DataRequired, ValidationError
 APP_ROOT = os.path.dirname(os.path.abspath(__file__))
 VALID_COMPRESSED = (".zip", ".tar.gz", ".tar")  # TODO: Add 7z, Add rar
 IMG_TYPES = ['.jpg', '.png']
-PROGRESS = {}
+#PROGRESS = {}
 B_W_LIFETIME = 60 * 60 * 24 * 1  # [seconds] 60*60*24*1 = once a day
 UPL_LIFETIME = 60 * 60 * 24 * 1  # [seconds] 60*60*24*1 = once a day
 RES_LIFETIME = 60 * 60 * 24 * 1  # [seconds] 60*60*24*1 = once a day
@@ -68,7 +67,12 @@ def process_compressed(compressed_list, token):
     :return list:
     """
     #global PROGRESS
-
+    
+    PROGRESS = {}
+    
+    with open(RESULTS_FOLDER + token + SH + "progress.txt") as infile:
+        PROGRESS = json.load(infile)
+    
     folder_list = []
 
     for file in compressed_list:
@@ -83,7 +87,9 @@ def process_compressed(compressed_list, token):
                 os.mkdir(file + ".dir" + SH)
                 folder_list.append(file + ".dir" + SH)
                 zf.extractall(file + ".dir" + SH)
-        #PROGRESS[token]['extract'] = PROGRESS[token]['extract'] + 1
+        PROGRESS[token]['extract'] = PROGRESS[token]['extract'] + 1
+        with open(RESULTS_FOLDER + token + SH + "progress.txt", 'w') as outfile:
+            json.dump(PROGRESS, outfile)
     return folder_list
 
 
@@ -124,8 +130,12 @@ def normalise_images(files, target, token):
     :return list:
     """
 
-    global PROGRESS
+    #global PROGRESS
     image_values = []
+    PROGRESS = {}
+    
+    with open(RESULTS_FOLDER + token + SH + "progress.txt") as infile:
+        PROGRESS = json.load(infile)
 
     for file in files:
         name = file.replace(target, "")
@@ -155,6 +165,9 @@ def normalise_images(files, target, token):
         PROGRESS[token]['normalise'] = PROGRESS[token]['normalise'] + 1
 
         os.remove(file)
+        
+        with open(RESULTS_FOLDER + token + SH + "progress.txt", 'w') as outfile:
+            json.dump(PROGRESS, outfile)
     return image_values
 
 
@@ -168,8 +181,12 @@ def bulk_classify(files, loaded_model, token):
     :return list:
     """
 
-    global PROGRESS
+    #global PROGRESS
     return_values = []
+    
+    PROGRESS = {}
+    with open(RESULTS_FOLDER + token + SH + "progress.txt") as infile:
+        PROGRESS = json.load(infile)
 
     for i in files:
         if i[1] != "":
@@ -178,6 +195,8 @@ def bulk_classify(files, loaded_model, token):
             return_values.append((i[0], ""))
         # append token and filename to progress tracking dictionary
         PROGRESS[token]['classify'] = PROGRESS[token]['classify'] + 1
+        with open(RESULTS_FOLDER + token + SH + "progress.txt", 'w') as outfile:
+            json.dump(PROGRESS, outfile)
     return return_values
 
 
@@ -339,8 +358,12 @@ def process_images(target, neural_network):
 
     t1 = datetime.datetime.now()
     token = target.split(SH)[-2]
-    global PROGRESS
-
+    #global PROGRESS
+    PROGRESS = {}
+    
+    with open(RESULTS_FOLDER + token + SH + "progress.txt") as infile:
+        PROGRESS = json.load(infile)
+    
     compressed_list = [target + filename for filename in os.listdir(target) if filename.endswith(VALID_COMPRESSED)]
     
     # This is here because heroku kept giving us 500 errors for no reason
@@ -351,24 +374,35 @@ def process_images(target, neural_network):
         PROGRESS[token]['total'] = 0
         PROGRESS[token]['normalise'] = 0
         PROGRESS[token]['classify'] = 0
-        #PROGRESS[token]['extract'] = 0
-        #PROGRESS[token]['extract_total'] = 0
+        PROGRESS[token]['extract'] = 0
+        PROGRESS[token]['extract_total'] = 0
     
-    #PROGRESS[token]['extract_total'] = len(compressed_list)
+    PROGRESS[token]['extract_total'] = len(compressed_list)
     
-    #if PROGRESS[token]['extract_total'] == 0:
-    #    # This is so we don't have a divide by 0 error later.
-    #    PROGRESS[token]['extract'] = 1
-    #    PROGRESS[token]['extract_total'] = 1
+    if PROGRESS[token]['extract_total'] == 0:
+        # This is so we don't have a divide by 0 error later.
+        PROGRESS[token]['extract'] = 1
+        PROGRESS[token]['extract_total'] = 1
+        
+    with open(RESULTS_FOLDER + token + SH + "progress.txt", 'w') as outfile:
+        json.dump(PROGRESS, outfile)
     
     # Loop over and extract compressed folders    
     folder_list = process_compressed(compressed_list, token)
-
+    
+    PROGRESS = {}
+    
+    with open(RESULTS_FOLDER + token + SH + "progress.txt") as infile:
+        PROGRESS = json.load(infile)
+    
     # Get list of the files in a folder
     only_files = files_in_folder(target)
     
     # Store the total number of files to be processed in the progress dict
     PROGRESS[token]['total'] = len(only_files)
+    
+    with open(RESULTS_FOLDER + token + SH + "progress.txt", 'w') as outfile:
+        json.dump(PROGRESS, outfile)
 
     if neural_network in ["shape"]:
         # Moved this out of the CNN function because its expensive, so its better to only call once.
@@ -393,11 +427,12 @@ def process_images(target, neural_network):
     if neural_network in ["shape"]:
         # sends normalised images into the classifier
         return_values = bulk_classify(image_values, loaded_model, token)
+        
     else:
         # Your version of bulk_classify that works with the other neural network
         # return_values = ?
         pass
-
+    
     if neural_network in ["shape"]:
         # removes compressed files and folders after they've been extracted.
         file_cleanup(target, compressed_list, folder_list)
@@ -742,7 +777,8 @@ def upload():
     :return token:
     """
     
-    global PROGRESS
+    #global PROGRESS
+    PROGRESS = {}
     
     if not os.path.exists(UPLOADS_FOLDER):
         os.mkdir(UPLOADS_FOLDER)
@@ -770,7 +806,9 @@ def upload():
     f = open(rand_results, "w")
     f.write(" ")
     f.close()
-
+    
+    
+    
     # Save each uploaded file to the correct subfolder in uploads.
     for file in request.files.values():
         filename = file.filename
@@ -781,9 +819,12 @@ def upload():
     PROGRESS[new_token]['total'] = 0
     PROGRESS[new_token]['normalise'] = 0
     PROGRESS[new_token]['classify'] = 0
-    #PROGRESS[new_token]['extract'] = 0
-    #PROGRESS[new_token]['extract_total'] = 0
-
+    PROGRESS[new_token]['extract'] = 0
+    PROGRESS[new_token]['extract_total'] = 0
+    
+    with open(RESULTS_FOLDER + new_token + SH + "progress.txt", 'w') as outfile:
+        json.dump(PROGRESS, outfile)
+    
     # 202 Accepted
     return (new_token, 202)
 
@@ -801,7 +842,6 @@ def start_processing():
     neural_network = request.headers.get("NETWORK").lower()
     check_folder()
     target = UPLOADS_FOLDER + token + SH
-    print(neural_network)
     # Make uploads folder if doesn't exist
     if not os.path.exists(target):
         os.mkdir(target)
@@ -856,7 +896,8 @@ def getProgress(token):
     :return progress:
     """
 
-    global PROGRESS
+    #global PROGRESS
+    PROGRESS = {}
     percentage = 0
     previous = request.headers.get("PREV")
     wait = request.headers.get("WAIT")
@@ -865,13 +906,18 @@ def getProgress(token):
     if wait is None: wait = 0
     
     waiting_time = wait
-    current = ",Uploading..."
+    current = "Uploading..."
+    
+    with open(RESULTS_FOLDER + token + SH + "progress.txt") as infile:
+        PROGRESS = json.load(infile)
     
     try:
-        print(PROGRESS)
         if PROGRESS[token]['total'] > 0:
-            percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) 
-                                        / PROGRESS[token]['total']) * 100))
+            percentage = int(round((((0.02 * PROGRESS[token]['extract'] 
+                                        / PROGRESS[token]['extract_total'] )
+                                    + (0.02 * PROGRESS[token]['normalise'] + 0.96 * PROGRESS[token]['classify']) 
+                                        / PROGRESS[token]['total']) ) 
+                                    * 100))
             if percentage > 100:
                 percentage = 100
         if percentage == int(previous):
@@ -880,18 +926,17 @@ def getProgress(token):
         else:
             waiting_time = -1
             
-        #if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
-        if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
-            current = ",Classifying... "
+        if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
+            if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
+                current = "Classifying... "
+            else:
+                current = "Processing Images... "
         else:
-            current = ",Processing Images... "
-        #else:
-        #    current = ",Extracting... "
-        
-        return str(percentage) + "," + str(waiting_time) + current
+            current = "Extracting... "
+        return str(percentage) + "," + str(waiting_time) + "," + current
     except KeyError:
         waiting_time = min(int(wait) + 1, 5)
-        return str(max(int(previous), percentage)) + "," + str(waiting_time) + current
+        return str(max(int(previous), percentage)) + "," + str(waiting_time) + "," + current
         
 
 
@@ -903,7 +948,8 @@ def on_timeout():
     :return 408 timeout OR results:
     """
     
-    global PROGRESS
+    #global PROGRESS
+    PROGRESS = {}
     token = request.headers.get("TOKEN")
     previous = request.headers.get("PREV")
     wait = request.headers.get("WAIT")
@@ -913,7 +959,10 @@ def on_timeout():
     
     waiting_time = wait
     percentage = 0
-    current = ",Uploading..."
+    current = "Uploading..."
+    
+    with open(RESULTS_FOLDER + token + SH + "progress.txt") as infile:
+        PROGRESS = json.load(infile)
     
     if os.path.exists(RESULTS_FOLDER + token + SH + "done.txt"):
         file = RESULTS_FOLDER + token + SH + "results.txt"
@@ -923,8 +972,11 @@ def on_timeout():
     else:
         try:
             if PROGRESS[token]['total'] > 0:
-                percentage = int(round(((0.02 * PROGRESS[token]['normalise'] + 0.98 * PROGRESS[token]['classify']) 
-                                        / PROGRESS[token]['total']) * 100))
+                percentage = int(round((((0.02 * PROGRESS[token]['extract'] 
+                                        / PROGRESS[token]['extract_total'] )
+                                    + (0.02 * PROGRESS[token]['normalise'] + 0.96 * PROGRESS[token]['classify']) 
+                                        / PROGRESS[token]['total']) ) 
+                                    * 100))
                 if percentage > 100:
                     percentage = 100
                 if percentage == previous:
@@ -933,16 +985,16 @@ def on_timeout():
                 else:
                     waiting_time = -1
                 
-                #if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
-                if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
-                    current = ",Classifying... "
+                if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
+                    if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
+                        current = "Classifying... "
+                    else:
+                        current = "Processing Images... "
                 else:
-                    current = ",Processing Images... "
-                #else:
-                #    current = ",Extracting... "
+                    current = "Extracting... "
             return Response(str(percentage) + "," + str(waiting_time) + current, 408)
         except KeyError:
-            return Response(str(max(int(previous), percentage)) + "," + str(waiting_time) + current, 408)
+            return Response(str(max(int(previous), percentage)) + "," + str(waiting_time) + "," + current, 408)
 
 
 @app.route('/getImages/<token>', methods=["GET"])
@@ -958,7 +1010,6 @@ def return_images(token):
     left_path = B_W_FOLDER + token + SH
     files = [f for f in os.listdir(left_path)]
     output_files = [i for i in files if i not in ['progress.txt', 'results.txt', 'done.txt']]
-    print(output_files)
     if len(output_files) > 0 and output_files != ["images.txt"]:
         memory_file = io.BytesIO()
         with zipfile.ZipFile(memory_file, 'w') as zf:

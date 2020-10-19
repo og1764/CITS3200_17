@@ -858,12 +858,12 @@ def getProgress(token):
     percentage = 0
     previous = request.headers.get("PREV")
     wait = request.headers.get("WAIT")
+    current = request.headers.get("PROG")
     
     if previous is None: previous = 0
     if wait is None: wait = 0
-    
+    if current is None: current = ",Uploading..."
     waiting_time = wait
-    current = ",Uploading..."
     
     try:
         if PROGRESS[token]['total'] > 0:
@@ -891,6 +891,7 @@ def getProgress(token):
         return str(percentage) + "," + str(waiting_time) + current
     except KeyError:
         print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
+        print(PROGRESS)
         waiting_time = min(int(wait) + 1, 5)
         return str(max(int(previous), percentage)) + "," + str(waiting_time) + current
         
@@ -947,6 +948,7 @@ def on_timeout():
             return Response(str(percentage) + "," + str(waiting_time) + current, 408)
         except KeyError:
             print(str(sys.exc_info()[1]) + " @ Line " + str(sys.exc_info()[2].tb_lineno))
+            print(PROGRESS)
             return Response(str(max(int(previous), percentage)) + "," + str(waiting_time) + current, 408)
 
 

@@ -64,7 +64,7 @@ var myDropzone = new Dropzone(".dropzone", {
     init: function() {
         this.on("successmultiple", function(data, status) {
             Get_Function('/start', this, status);
-            Check_Progress(status, "-1", "0");
+            Check_Progress(status, "-1", "0", ",Uploading...");
         });
     },
 });
@@ -74,8 +74,9 @@ var myDropzone = new Dropzone(".dropzone", {
     * @param    {String}    token       Unique Identifier.
     * @param    {Int}       previous    Progress at previous request.
     * @param    {Int}       wait        Time the previous request waited for.
+    * @param    {String}    prog        Status at the time of previous request
 */
-function Check_Progress(token, previous, wait) {
+function Check_Progress(token, previous, wait, prog) {
     var xhttp;
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
@@ -87,7 +88,7 @@ function Check_Progress(token, previous, wait) {
             } else {
                 document.getElementById("file").value = splitted[0];
                 document.getElementById("prog-lbl").innerHTML = splitted[2];
-                Check_Progress(token, splitted[0], splitted[1]);
+                Check_Progress(token, splitted[0], splitted[1], splitted[2]);
             }
         };
     };
@@ -96,6 +97,7 @@ function Check_Progress(token, previous, wait) {
     xhttp.setRequestHeader("TOKEN", token);
     xhttp.setRequestHeader("PREV", previous);
     xhttp.setRequestHeader("WAIT", wait);
+    xhttp.setRequestHeader("PROG", prog);
     xhttp.send();
 }
 
@@ -106,8 +108,9 @@ function Check_Progress(token, previous, wait) {
     * @param    {String}    token       Unique Identifier.
     * @param    {Int}       previous    Progress at previous request.
     * @param    {Int}       wait        Time the previous request waited for.
+    * @param    {String}    prog        Status at the time of previous request
 */
-function Timeout_Function(url, dropzone, token, previous, wait){
+function Timeout_Function(url, dropzone, token, previous, wait, prog){
     var xhttp;
     xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
@@ -125,7 +128,7 @@ function Timeout_Function(url, dropzone, token, previous, wait){
             console.log("Timeout Function Hit");
             var resp_text = this.responseText;
             var splitted = resp_text.split(",")
-            Timeout_Function(url, dropzone, token, splitted[0], splitted[1]);
+            Timeout_Function(url, dropzone, token, splitted[0], splitted[1], splitted[2]);
         };
     };
     xhttp.open("GET", url, true);
@@ -133,6 +136,7 @@ function Timeout_Function(url, dropzone, token, previous, wait){
     xhttp.setRequestHeader("TOKEN", token);
     xhttp.setRequestHeader("PREV", previous);
     xhttp.setRequestHeader("WAIT", wait);
+    xhttp.setRequestHeader("PROG", prog);
     xhttp.send();
 }
 
@@ -165,6 +169,7 @@ function B_W_Download(url){
     * Initialise the Dropzone upload, and reveal the progress bar.
 */
 function to_upload(){
+    document.getElementById("file").value = 0;
     document.getElementById("progress-container").style.display = "block";
     document.getElementById("prog-lbl").innerHTML = "Uploading... ";
     document.getElementById("bw-images").innerHTML = '<a></a>';

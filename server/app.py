@@ -864,6 +864,7 @@ def getProgress(token):
     if wait is None: wait = 0
     
     waiting_time = wait
+    current = ",Uploading..."
     
     try:
         print(PROGRESS)
@@ -880,10 +881,19 @@ def getProgress(token):
             time.sleep(waiting_time)
         else:
             waiting_time = -1
-        return str(percentage) + "," + str(waiting_time)
+            
+        if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
+            if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
+                current = ",Classifying... "
+            else:
+                current = ",Processing Images... "
+        else:
+            current = ",Extracting... "
+        
+        return str(percentage) + "," + str(waiting_time) + current
     except KeyError:
         waiting_time = min(int(wait) + 1, 5)
-        return str(max(int(previous), percentage)) + "," + str(waiting_time)
+        return str(max(int(previous), percentage)) + "," + str(waiting_time) + current
         
 
 
@@ -905,6 +915,7 @@ def on_timeout():
     
     waiting_time = wait
     percentage = 0
+    current = ",Uploading..."
     
     if os.path.exists(RESULTS_FOLDER + token + SH + "done.txt"):
         file = RESULTS_FOLDER + token + SH + "results.txt"
@@ -926,9 +937,17 @@ def on_timeout():
                     time.sleep(waiting_time)
                 else:
                     waiting_time = -1
-            return Response(str(percentage) + "," + str(waiting_time), 408)
+                
+                if PROGRESS[token]['extract'] == PROGRESS[token]['extract_total']:
+                    if PROGRESS[token]['normalise'] == PROGRESS[token]['total']:
+                        current = ",Classifying... "
+                    else:
+                        current = ",Processing Images... "
+                else:
+                    current = ",Extracting... "
+            return Response(str(percentage) + "," + str(waiting_time) + current, 408)
         except KeyError:
-            return Response(str(max(int(previous), percentage)) + "," + str(waiting_time), 408)
+            return Response(str(max(int(previous), percentage)) + "," + str(waiting_time) + current, 408)
 
 
 @app.route('/getImages/<token>', methods=["GET"])

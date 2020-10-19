@@ -33,7 +33,7 @@ function Get_Function(url, dropzone, token) {
 			} else {
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 				document.getElementById("bw-images").innerHTML = '<button id="bw-bt" onclick=B_W_Download("/getImages/'.concat(token,'")>Download B&W Images</button>');
-				document.getElementById("progress_container").style.display = "none";
+				document.getElementById("progress-container").style.display = "none";
 			}
 			dropzone.removeAllFiles()
 		}else if (this.status == 408){
@@ -88,6 +88,7 @@ function Check_Progress(token, previous, wait) {
 				document.getElementById("file").value = splitted[0];
 			} else {
 				document.getElementById("file").value = splitted[0];
+				document.getElementById("prog-lbl").innerHTML = splitted[2];
 				Check_Progress(token, splitted[0], splitted[1]);
 			}
 		};
@@ -119,7 +120,7 @@ function Timeout_Function(url, dropzone, token, previous, wait){
 			} else {
 				document.getElementById("results").innerHTML = '<a href="/getResults/'.concat(token,'" download><button>Download</button></a>');
 				document.getElementById("bw-images").innerHTML = '<button id="bw-bt" onclick=B_W_Download("/getImages/'.concat(token,'")>Download B&W Images</button>');
-				document.getElementById("progress_container").style.display = "none";
+				document.getElementById("progress-container").style.display = "none";
 			}
 			dropzone.removeAllFiles()
 		}else if (this.readyState == 4 && this.status == 408) {
@@ -161,7 +162,12 @@ function B_W_Download(url){
 	xhttp.send();	
 }
 
+
+/**
+   * Initialise the Dropzone upload, and reveal the progress bar.
+*/
 function to_upload(){
-	document.getElementById("progress_container").style.display = "block";
+	document.getElementById("progress-container").style.display = "block";
+	document.getElementById("prog-lbl").innerHTML = "Uploading... ";
 	Dropzone.forElement('.dropzone').processQueue()
 }
